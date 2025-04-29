@@ -1,0 +1,14 @@
+[
+    "N2", "O2", "H2", "H", "OH", "H2O", "HO2", "H2O2", "CH4", "CO", 
+    "CO2", "C2H2", "C2H4", "C2H6", "CH2O", "CH3", "CH3O", "CH3OH", "C", "CN", 
+    "HCN", "NH3", "NO", "NO2", "N2O", "AR", "HE", "Ne", "Kr", "Xe",
+    "C2H5", "C3H8", "C4H10", "C7H16", "isoButane", "nButane", "IC8H18", "JetA",
+    "CH2", "CH2*", "CH3*", "CH4*", "C6H6", "C6H5", "CH3CHO", "CH3CO", 
+    "CH2CO", "CH3COCH3", "COOH", "HCO", "CH3COCH2", "C2H5OH", "CH3CH2OH", "acetone",
+    "acetaldehyde", "glyoxal", "soot", "TiCl4", "SiO2", "SO2", "SO3", "HSO3",
+    "H2S", "C3H3", "C3H5", "C3H7", "C3H7O", "C3H6", "C5H5", "C7H8", "CH3CN",
+    "CH3Cl", "CH3Br", "CH3I", "CH3NH2", "HNO3", "HNO2", "N2H4", "NH2",
+    "Cl2", "F2", "HF", "HCl", "PF3", "PH3", "NF3", "SF6", "CF4",
+    "C2F6", "C3F8", "C2HF5", "CH2F2", "CHF3", "CCl4", "CHCl3", "CH2Cl2", "CH3Cl2",
+    "benzene", "toluene", "xylene", "styrene", "ethanol", "methanol"
+]

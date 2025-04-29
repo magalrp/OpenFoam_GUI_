@@ -1,0 +1,12 @@
+# Python byte‐code
+__pycache__/
+*.py[cod]
+
+# Backups
+*.bak
+
+# VS Code
+.vscode/
+
+# Carpetas temporales
+temp/
