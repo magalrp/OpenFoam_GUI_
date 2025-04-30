@@ -24,6 +24,7 @@ TREE_STRUCTURE = [
             {"label": "Controles",       "key": "controls"},
             {"label": "Inicialización",  "key": "inicializacion"},
             {"label": "Ejecutar cálculo","key": "run_calculation"}
+            
         ]
     }
 ]

@@ -1,3 +1,5 @@
+
+
 import sys
 import json
 import os
@@ -17,7 +19,7 @@ def main():
     app = QApplication(sys.argv)
 
     # Ruta temporal del caso de prueba (reemplazar con diálogo de "Abrir proyecto" más adelante)
-    test_case_dir = r"/home/miguel/00_TFM/04_Quemador_KIAI_dyn_mesh"
+    test_case_dir = r"/home/miguel/01_GUI_openFoam/01_Test"
 
     # Crear configuración inicial
     config = {

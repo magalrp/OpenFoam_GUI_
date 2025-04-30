@@ -1,9 +1,10 @@
 # ui/main_window.py
 
 import os
+import logging
 from PyQt5.QtWidgets import (
-    QWidget, QHBoxLayout, QTreeWidget,
-    QStackedWidget, QMessageBox
+    QWidget, QHBoxLayout, QTreeWidget, QStackedWidget, QMessageBox,
+    QSplitter
 )
 from PyQt5.QtCore import Qt
 
@@ -18,34 +19,67 @@ from ui.sections.methods import Methods
 from ui.sections.controls import Controls
 from ui.sections.run_calculation import RunCalculation
 
+from ui.sections.console_panel    import ConsolePanel, QtHandler
+from ui.sections.visualizer_panel import VisualizerPanel
+
 from core.json_manager import JSONManager
 
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-
         self.setWindowTitle("OpenFOAM Setup Interface")
-        self.resize(1000, 700)
+        self.resize(1200, 800)
 
-        # JSON manager y configuración del caso
+        # Aplicar un stylesheet más elegante
+        self.setStyleSheet("""
+            QTreeWidget {
+                background-color: #fafafa;
+                border: 1px solid #ddd;
+                font-size: 14px;
+            }
+            QStackedWidget {
+                background-color: #fff;
+                border: 1px solid #ddd;
+            }
+            QGroupBox {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                margin-top: 0.5em;
+                font-weight: bold;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top left;
+                padding: 0 3px;
+            }
+            QPlainTextEdit {
+                background-color: #1e1e1e;
+                color: #dcdcdc;
+                border: none;
+                font-family: monospace;
+            }
+            QSplitter::handle {
+                background-color: #ddd;
+            }
+        """)
+
+        # JSON manager y configuración
         self.json_manager = JSONManager()
-        self.case_config = self.load_case_config()
+        self.case_config  = self.load_case_config()
 
-        # Layout principal
+        # Layout principal con QSplitter horizontal
         main_layout = QHBoxLayout(self)
+        splitter_h = QSplitter(Qt.Horizontal, self)
 
-        # Árbol lateral
+        # 1) Árbol lateral
         self.tree = QTreeWidget()
         self.tree.setHeaderHidden(True)
-
-        # Construir el árbol y obtener el mapeo clave→QTreeWidgetItem
         self.tree_items = TreeBuilder.build(self.tree)
+        splitter_h.addWidget(self.tree)
 
-        # StackedWidget
+        # 2) Páginas centrales
         self.stacked = QStackedWidget()
-
-        # Crear páginas y añadirlas al stacked
         self.page_directorio     = DirectorioTrabajo(self.case_config)
         self.page_modelos        = Modelo(self.case_config)
         self.page_materiales     = Materiales(self.case_config)
@@ -56,25 +90,38 @@ class MainWindow(QWidget):
         self.page_inicializacion = Inicializacion(os.path.join(os.getcwd(), "temp"))
         self.page_run_calc       = RunCalculation(self.case_config)
 
-        for page in [
-            self.page_directorio,      # key: "directorio"
-            self.page_modelos,         # key: "modelos"
-            self.page_materiales,      # key: "materiales"
-            self.page_bc,              # key: "boundary_conditions"
-            self.page_discrete_phase,  # key: "fase_discreta"
-            self.page_methods,         # key: "methods"
-            self.page_controls,        # key: "controls"
-            self.page_inicializacion,  # key: "inicializacion"
-            self.page_run_calc         # key: "run_calculation"
+        for pg in [
+            self.page_directorio,
+            self.page_modelos,
+            self.page_materiales,
+            self.page_bc,
+            self.page_discrete_phase,
+            self.page_methods,
+            self.page_controls,
+            self.page_inicializacion,
+            self.page_run_calc
         ]:
-            self.stacked.addWidget(page)
+            self.stacked.addWidget(pg)
 
-        # Montar layout
-        main_layout.addWidget(self.tree, 1)
-        main_layout.addWidget(self.stacked, 4)
-        self.setLayout(main_layout)
+        splitter_h.addWidget(self.stacked)
 
-        # Mapeo de claves a páginas (debe coincidir con TREE_STRUCTURE keys)
+        # 3) Panel derecho fijo con QSplitter vertical
+        right_splitter = QSplitter(Qt.Vertical)
+        self.visualizer = VisualizerPanel()
+        self.console    = ConsolePanel()
+        right_splitter.addWidget(self.visualizer)
+        right_splitter.addWidget(self.console)
+        # Alturas iniciales: más espacio al visualizador
+        right_splitter.setSizes([600, 200])
+
+        splitter_h.addWidget(right_splitter)
+
+        # Anchos iniciales: árbol estrecho, páginas medias, panel derecho
+        splitter_h.setSizes([200, 600, 400])
+
+        main_layout.addWidget(splitter_h)
+
+        # Mapeo clave → página
         self.page_map = {
             "directorio":          self.page_directorio,
             "modelos":             self.page_modelos,
@@ -87,12 +134,11 @@ class MainWindow(QWidget):
             "run_calculation":     self.page_run_calc
         }
 
-        # Conexiones de navegación
+        # Conexiones árbol → stacked
         self.tree.currentItemChanged.connect(self.on_tree_item_changed)
-        # Seleccionar la primera página (“directorio”)
-        first_item = self.tree_items.get("directorio")
-        if first_item:
-            self.tree.setCurrentItem(first_item)
+        first = self.tree_items.get("directorio")
+        if first:
+            self.tree.setCurrentItem(first)
 
         # Auto-guardado
         self.page_bc.data_changed.connect(self.auto_save_boundary_conditions)
@@ -102,11 +148,13 @@ class MainWindow(QWidget):
         self.page_run_calc.data_changed.connect(self.auto_save_run_calc)
         self.page_directorio.boundaries_loaded.connect(self.sync_boundary_conditions)
 
+        # Logging → consola
+        handler = QtHandler(self.console.log_widget)
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s: %(message)s"))
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(logging.INFO)
+
     def load_case_config(self):
-        """
-        Carga la configuración del caso o devuelve valores por
-        defecto (incluyendo fvSchemes y fvSolution).
-        """
         defaults = {
             "solverSettings": {
                 "solver": "icoFoam",
@@ -114,22 +162,14 @@ class MainWindow(QWidget):
                 "calculationType": "Incompresible"
             },
             "controlDict": {
-                "startTime": 0.0,
-                "endTime": 0.0,
-                "deltaT": 0.001,
-                "adjustTimeStep": False,
-                "maxCo": 1.0,
-                "maxDeltaT": 0.0,
-                "nOuterCorrectors": None,
-                "nInnerIterations": None,
-                "writeControl": "timeStep",
-                "writeInterval": 1.0,
-                "writeFormat": "ascii",
-                "writePrecision": 6,
+                "startTime": 0.0, "endTime": 0.0, "deltaT": 0.001,
+                "adjustTimeStep": False, "maxCo": 1.0, "maxDeltaT": 0.0,
+                "nOuterCorrectors": None, "nInnerIterations": None,
+                "writeControl": "timeStep", "writeInterval": 1.0,
+                "writeFormat": "ascii", "writePrecision": 6,
                 "writeCompression": False
             },
-            "fvSchemes": {},
-            "fvSolution": {}
+            "fvSchemes": {}, "fvSolution": {}
         }
         path = self.json_manager.get_file_path("case_config")
         if os.path.exists(path):
@@ -140,9 +180,6 @@ class MainWindow(QWidget):
         return defaults
 
     def on_tree_item_changed(self, current, previous):
-        """
-        Cambia la página del stacked según el item seleccionado.
-        """
         for key, item in self.tree_items.items():
             if item is current:
                 page = self.page_map.get(key)
@@ -151,9 +188,6 @@ class MainWindow(QWidget):
                 return
 
     def sync_boundary_conditions(self):
-        """
-        Integra fronteras desde DirectorioTrabajo en case_config.
-        """
         boundaries = self.page_directorio.boundaries_info
         for b in boundaries:
             name = b.get("name")

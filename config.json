@@ -1,5 +1,5 @@
 {
-    "working_directory": "/home/miguel/00_TFM/04_Quemador_KIAI_dyn_mesh",
+    "working_directory": "/home/miguel/01_GUI_openFoam/01_Test",
     "solver": "icoFoam",
     "simulation_type": "Estacionario",
     "calculation_type": "Incompresible"
