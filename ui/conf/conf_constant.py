@@ -1,4 +1,5 @@
 # ui/conf/conf_constant.py
+
 import os
 import json
 import logging
@@ -9,6 +10,7 @@ from ui.conf.constant.conf_g import generate_g_file
 from ui.conf.constant.conf_chem import generate_chemistryProperties
 from ui.conf.constant.conf_combustion import generate_combustionProperties
 from ui.conf.constant.conf_particleTrack import generate_particleTrackProperties
+from ui.conf.constant.conf_thermophysicalProperties import generate_thermophysicalProperties
 
 def load_constant_config(root_dir):
     """
@@ -53,83 +55,86 @@ def generate_constant_files(case_config, root_dir):
     Genera los archivos del directorio constant (en temp/DP0/constant)
     basándose en la configuración actual (case_config).
 
-    Se generan:
+    Archivos generados:
       - turbulenceProperties
       - radiationProperties
-      - g (si la gravedad está activa)
-      - chemistryProperties (si especiesActive está activado)
-      - combustionProperties (si la combustión está activa)
-      - particleTrackProperties (si la fase discreta está activa según Disperse_fase.json)
+      - g (si gravity_active)
+      - thermophysicalProperties
+      - chemistryProperties (si especiesActive)
+      - combustionProperties (si combustión activa)
+      - particleTrackProperties (si fase discreta activa)
     """
-    # Actualiza case_config con constant.json (si existe)
+    # 1) Incorporar valores de constant.json
     constant_data = load_constant_config(root_dir)
     if constant_data:
         case_config.update(constant_data)
-    
-    # Ruta de salida para DP0/constant
+
+    # 2) Directorio de salida
     constant_dir = os.path.join(root_dir, "temp", "DP0", "constant")
-    if not os.path.exists(constant_dir):
-        os.makedirs(constant_dir)
+    os.makedirs(constant_dir, exist_ok=True)
     logging.info(f"Generando archivos en: {constant_dir}")
-    
+
     # --- turbulenceProperties ---
-    turbulence_file = os.path.join(constant_dir, "turbulenceProperties")
+    turb_file = os.path.join(constant_dir, "turbulenceProperties")
     turb = case_config.get("turbulenceModel", {"category": "Laminar", "model": "Laminar"})
     if isinstance(turb, dict):
-        category = turb.get("category", "Laminar")
-        model = turb.get("model", "Laminar")
-        final_model = "laminar" if category.lower() == "laminar" else model
+        cat = turb.get("category", "Laminar")
+        mdl = turb.get("model", "Laminar")
+        final_model = "laminar" if cat.lower() == "laminar" else mdl
     else:
-        final_model = "laminar" if turb.lower() == "laminar" else turb
-    turbulence_config = {
+        final_model = "laminar" if str(turb).lower() == "laminar" else turb
+    turb_cfg = {
         "turbulenceModel": final_model,
-        "turbulence": "on" if final_model.lower() != "laminar" else "off",
+        "turbulence": "on" if str(final_model).lower() != "laminar" else "off",
         "printCoeffs": "on"
     }
-    generate_turbulenceProperties(turbulence_config, turbulence_file)
-    
+    generate_turbulenceProperties(turb_cfg, turb_file)
+
     # --- radiationProperties ---
-    radiation_file = os.path.join(constant_dir, "radiationProperties")
-    generate_radiationProperties(case_config, radiation_file)
-    
+    rad_file = os.path.join(constant_dir, "radiationProperties")
+    generate_radiationProperties(case_config, rad_file)
+
     # --- g (gravedad) ---
     if case_config.get("gravity_active", False):
         g_file = os.path.join(constant_dir, "g")
         generate_g_file(case_config, g_file)
-        logging.info(f"Archivo 'g' generado correctamente en: {g_file}")
-    
+        logging.info(f"Archivo 'g' generado en: {g_file}")
+
+    # --- thermophysicalProperties ---
+    thermo_cfg = case_config.get("thermophysicalProperties", {})
+    thermo_file = os.path.join(constant_dir, "thermophysicalProperties")
+    generate_thermophysicalProperties(thermo_cfg, thermo_file)
+
     # --- chemistryProperties ---
-    chemistry_file = os.path.join(constant_dir, "chemistryProperties")
+    chem_file = os.path.join(constant_dir, "chemistryProperties")
     if case_config.get("especiesActive", False):
-        generate_chemistryProperties(case_config, chemistry_file)
-        logging.info(f"Archivo 'chemistryProperties' generado correctamente en: {chemistry_file}")
+        generate_chemistryProperties(case_config, chem_file)
+        logging.info(f"Archivo 'chemistryProperties' generado en: {chem_file}")
     else:
-        if os.path.exists(chemistry_file):
-            os.remove(chemistry_file)
-            logging.info("Archivo 'chemistryProperties' eliminado porque las especies están apagadas.")
-    
+        if os.path.exists(chem_file):
+            os.remove(chem_file)
+            logging.info("Archivo 'chemistryProperties' eliminado (especies off)")
+
     # --- combustionProperties ---
-    combustion_file = os.path.join(constant_dir, "combustionProperties")
-    especies_active = case_config.get("especiesActive", False)
-    modelo_comb = case_config.get("especies_options", {}).get("modelo", "None")
-    combustion_active = especies_active and (modelo_comb in ["combustionSinPremezcla", "combustionPremezclada"])
-    if combustion_active:
-        generate_combustionProperties(case_config, combustion_file)
-        logging.info(f"Archivo 'combustionProperties' generado correctamente en: {combustion_file}")
+    comb_file = os.path.join(constant_dir, "combustionProperties")
+    especies_on = case_config.get("especiesActive", False)
+    modelo_comb = case_config.get("especies_options", {}).get("modelo", "")
+    comb_on = especies_on and modelo_comb in ["combustionSinPremezcla", "combustionPremezclada"]
+    if comb_on:
+        generate_combustionProperties(case_config, comb_file)
+        logging.info(f"Archivo 'combustionProperties' generado en: {comb_file}")
     else:
-        if os.path.exists(combustion_file):
-            os.remove(combustion_file)
-            logging.info("Archivo 'combustionProperties' eliminado porque la combustión no está activa o las especies están apagadas.")
-    
+        if os.path.exists(comb_file):
+            os.remove(comb_file)
+            logging.info("Archivo 'combustionProperties' eliminado (combustión off)")
+
     # --- particleTrackProperties ---
-    # Cargar la configuración de fase discreta desde Disperse_fase.json
-    disperse_data = load_disperse_phase_config(root_dir)
-    discrete_active = disperse_data.get("discrete_phase_active", False)
-    particle_track_config = disperse_data.get("particleTrackProperties", {})
-    if discrete_active:
-        # Si no se encuentra la configuración, se asignan valores por defecto
-        if not particle_track_config:
-            particle_track_config = {
+    disp_data = load_disperse_phase_config(root_dir)
+    dp_on = disp_data.get("discrete_phase_active", False)
+    pt_cfg = disp_data.get("particleTrackProperties", {})
+    if dp_on:
+        if not pt_cfg:
+            pt_cfg = {
                 "cloudName": "reactingCloud1",
                 "sampleFrequency": 1,
                 "maxPositions": 1000000,
@@ -137,24 +142,25 @@ def generate_constant_files(case_config, root_dir):
                 "fields": "",
                 "maxTracks": -1
             }
-        # Actualiza case_config para que generate_particleTrackProperties lo use
-        case_config["particleTrackProperties"] = particle_track_config
-        generate_particleTrackProperties(case_config, os.path.join(constant_dir, "particleTrackProperties"))
-        logging.info(f"Archivo 'particleTrackProperties' generado correctamente en: {os.path.join(constant_dir, 'particleTrackProperties')}")
+        case_config["particleTrackProperties"] = pt_cfg
+        pt_file = os.path.join(constant_dir, "particleTrackProperties")
+        generate_particleTrackProperties(case_config, pt_file)
+        logging.info(f"Archivo 'particleTrackProperties' generado en: {pt_file}")
     else:
-        particle_track_file = os.path.join(constant_dir, "particleTrackProperties")
-        if os.path.exists(particle_track_file):
-            os.remove(particle_track_file)
-            logging.info("Archivo 'particleTrackProperties' eliminado porque la fase discreta no está activa.")
-    
+        pt_file = os.path.join(constant_dir, "particleTrackProperties")
+        if os.path.exists(pt_file):
+            os.remove(pt_file)
+            logging.info("Archivo 'particleTrackProperties' eliminado (fase discreta off)")
+
     logging.info("Archivos del directorio constant generados correctamente.")
+
 
 if __name__ == "__main__":
     # Ejemplo de uso
-    example_config = {
+    example = {
         "turbulenceModel": {"category": "RAS", "model": "kEpsilon"},
         "gravity_active": True,
-        "gravity_vector": [0.0, 0.0, -1.0],
+        "gravity_vector": [0.0, 0.0, -9.81],
         "radiation_active": True,
         "radiation_options": {
             "radiationModel": "viewFactor",
@@ -180,9 +186,22 @@ if __name__ == "__main__":
                 "reactionRateFactor": 1.0
             }
         },
-        "discrete_phase_active": True,  # Aunque esta clave puede no estar en constant.json, se usa aquí para ejemplo
-        # La configuración de particleTrackProperties se esperaría que esté en Disperse_fase.json,
-        # pero se puede definir aquí para forzar un ejemplo:
+        "thermophysicalProperties": {
+            "version": "v2406",
+            "type": "heRhoThermo",
+            "mixture": "reactingMixture",
+            "transport": "sutherland",
+            "thermo": "janaf",
+            "energy": "sensibleEnthalpy",
+            "equationOfState": "perfectGas",
+            "specie": "specie",
+            "chemkin_dir": "<case>/chemkin",
+            "newFormat": True,
+            "inertSpecie": "N2",
+            "liquids": ["C7H16"],
+            "solids": []
+        },
+        "discrete_phase_active": True,
         "particleTrackProperties": {
             "cloudName": "genericCloud",
             "sampleFrequency": 1,
@@ -192,5 +211,5 @@ if __name__ == "__main__":
             "maxTracks": -1
         }
     }
-    root_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-    generate_constant_files(example_config, root_directory)
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    generate_constant_files(example, root)

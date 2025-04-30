@@ -1,4 +1,4 @@
-
+#!/usr/bin/env pvpython
 
 import sys
 import json
