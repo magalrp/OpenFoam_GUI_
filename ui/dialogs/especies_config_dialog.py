@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QSizePolicy
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 # Clase para mostrar números con hasta 10 decimales y notación científica si excede 3 decimales
 class ScientificDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, parent=None):

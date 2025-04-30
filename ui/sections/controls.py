@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from core.json_manager import JSONManager
+from ui.widgets.numeric_line_edit import NumericLineEdit
 
 class Controls(QWidget):
     """

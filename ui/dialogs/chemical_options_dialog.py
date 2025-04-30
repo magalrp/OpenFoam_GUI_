@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, QPushButton
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class MyDoubleSpinBox(QDoubleSpinBox):
     """
     SpinBox que permite hasta 7 decimales pero sin mostrar ceros de más.

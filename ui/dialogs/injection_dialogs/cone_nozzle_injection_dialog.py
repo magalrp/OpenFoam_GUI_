@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QRegularExpression
 from PyQt5.QtGui import QRegularExpressionValidator
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 
 class ConeNozzleInjectionDialog(QDialog):
     def __init__(self, parent=None, initial_data=None):
@@ -30,7 +30,7 @@ class ConeNozzleInjectionDialog(QDialog):
         self.parameters_widgets = {}
 
         # Nombre del inyector
-        self.name_input = QLineEdit()
+        self.name_input = NumericLineEdit()
         self.name_input.setText(self.injection_data.get("name", ""))
         form.addRow("Nombre del Inyector:", self.name_input)
 
@@ -214,7 +214,7 @@ class ConeNozzleInjectionDialog(QDialog):
         """
         Crea un QLineEdit con un validador que permite números en notación científica.
         """
-        line_edit = QLineEdit()
+        line_edit = NumericLineEdit()
         regex = QRegularExpression(r'^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$')
         validator = QRegularExpressionValidator(regex)
         line_edit.setValidator(validator)

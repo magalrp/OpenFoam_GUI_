@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QFormLayout, QLineEdit, QDoubleSpinBox, QMessageBox
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class ConfigMaterialDialog(QDialog):
     def __init__(self, case_config, parent=None, select_material=None):
         super().__init__(parent)
@@ -44,7 +44,7 @@ class ConfigMaterialDialog(QDialog):
         form.addRow("Seleccionar Material:", self.combo_mat)
 
         # 2. Nombre del material
-        self.line_name = QLineEdit()
+        self.line_name = NumericLineEdit()
         form.addRow("Nombre del material:", self.line_name)
 
         # Densidad

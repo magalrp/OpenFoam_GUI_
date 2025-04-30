@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
     QDoubleSpinBox, QLabel, QPushButton, QMessageBox, QListWidget, QListWidgetItem, QCheckBox, QWidget
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class InjectionDialog(QDialog):
     def __init__(self, parent=None, initial_data=None):
         super().__init__(parent)
@@ -24,7 +24,7 @@ class InjectionDialog(QDialog):
         form = QFormLayout()
 
         # Nombre del inyector
-        self.name_input = QLineEdit()
+        self.name_input = NumericLineEdit()
         self.name_input.setText(self.injection_data.get("name", ""))
         form.addRow("Nombre del Inyector:", self.name_input)
 

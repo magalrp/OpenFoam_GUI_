@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, QPushButton, QMessageBox
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class RadiationOptionsDialog(QDialog):
     def __init__(self, parent=None, initial_data=None):
         super().__init__(parent)

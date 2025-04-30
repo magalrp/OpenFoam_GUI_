@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QFormLayout
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class ConfGravDialog(QDialog):
     """
     Diálogo para configurar el vector de gravedad (x, y, z).

@@ -10,7 +10,7 @@ import os
 import json
 
 from core.boundary_parser import parse_openfoam_boundary
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 
 class PatchInjectionDialog(QDialog):
     def __init__(self, parent=None, initial_data=None):
@@ -34,7 +34,7 @@ class PatchInjectionDialog(QDialog):
         self.parameters_widgets = {}
 
         # Nombre del inyector
-        self.name_input = QLineEdit()
+        self.name_input = NumericLineEdit()
         self.name_input.setText(self.injection_data.get("name", ""))
         form.addRow("Nombre del Inyector:", self.name_input)
 
@@ -175,7 +175,7 @@ class PatchInjectionDialog(QDialog):
         Crea un QLineEdit con un validador que permite números en notación científica
         y hasta 12 decimales. Muestra hasta dos decimales a menos que el número sea <0.01.
         """
-        line_edit = QLineEdit()
+        line_edit = NumericLineEdit()
         regex = QRegularExpression(r'^[+-]?(\d+(\.\d{0,12})?|\.\d{1,12})([eE][+-]?\d+)?$')
         validator = QRegularExpressionValidator(regex)
         line_edit.setValidator(validator)

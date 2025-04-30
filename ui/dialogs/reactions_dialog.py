@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QListWidget, QLabel
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class ReactionsSelectionDialog(QDialog):
     def __init__(self, parent=None, available_species=None, reactants=None, products=None, inert_species=None):
         super().__init__(parent)

@@ -8,7 +8,7 @@ from PyQt5.QtCore import Qt
 import copy
 import os
 import json
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class ScientificDoubleSpinBox(QDoubleSpinBox):
     def __init__(self, parent=None):
         super().__init__(parent)

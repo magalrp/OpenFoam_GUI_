@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QHBoxLayout, QTreeWidget, QTreeWidgetItem,
     QLineEdit, QHeaderView, QDialog, QComboBox, QStyledItemDelegate, QMessageBox
 )
+from ui.widgets.numeric_line_edit import NumericLineEdit
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from ui.dialogs.wall_bc_dialog import WallBCDialog
@@ -113,7 +114,7 @@ class BoundaryConditions(QWidget):
         # Presión ambiente
         pressure_layout = QHBoxLayout()
         pressure_label = QLabel("Presión Ambiente (Pa):")
-        self.pressure_input = QLineEdit()
+        self.pressure_input = NumericLineEdit()
         self.pressure_input.setPlaceholderText("Ingrese valor de la presión ambiente")
         self.pressure_input.setText(str(self.case_config.get("ambientPressure", 101325)))
         self.pressure_input.editingFinished.connect(self.update_ambient_pressure)
@@ -124,7 +125,7 @@ class BoundaryConditions(QWidget):
         # Temperatura ambiente
         temperature_layout = QHBoxLayout()
         temperature_label = QLabel("Temperatura Ambiente (K):")
-        self.temperature_input = QLineEdit()
+        self.temperature_input = NumericLineEdit()
         self.temperature_input.setPlaceholderText("Ingrese valor de la temperatura ambiente")
         self.temperature_input.setText(str(self.case_config.get("ambientTemperature", 300.0)))
         self.temperature_input.editingFinished.connect(self.update_ambient_temperature)

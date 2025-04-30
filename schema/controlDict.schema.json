@@ -1,0 +1,22 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "controlDict",
+    "type": "object",
+    "properties": {
+      "startTime":    { "type": "number" },
+      "endTime":      { "type": "number" },
+      "deltaT":       { "type": "number", "exclusiveMinimum": 0 },
+      "adjustTimeStep": { "type": "boolean" },
+      "maxCo":        { "type": "number", "minimum": 0 },
+      "maxDeltaT":    { "type": "number", "minimum": 0 },
+      "nOuterCorrectors":   { "type": ["integer", "null"], "minimum": 1 },
+      "nInnerIterations":   { "type": ["integer", "null"], "minimum": 1 },
+      "writeControl": { "type": "string", "enum": ["timeStep", "runTime", "adjustableRunTime"] },
+      "writeInterval": { "type": "number", "minimum": 0 },
+      "writeFormat": { "type": "string", "enum": ["ascii", "binary"] },
+      "writePrecision": { "type": "integer", "minimum": 0 },
+      "writeCompression": { "type": "boolean" }
+    },
+    "required": ["startTime", "endTime", "deltaT", "writeControl", "writeInterval"]
+  }
+  

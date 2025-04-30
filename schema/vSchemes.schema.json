@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "fvSchemes",
+    "type": "object",
+    "properties": {
+      "divSchemes":      { "type": "object" },
+      "gradSchemes":     { "type": "object" },
+      "laplacianSchemes":{ "type": "object" },
+      "interpolationSchemes": { "type": "object" },
+      "snGradSchemes":   { "type": "object" }
+    },
+    "required": []
+  }
+  

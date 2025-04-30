@@ -1,11 +1,13 @@
 # ui/main_window.py
 
+import os
 from PyQt5.QtWidgets import (
-    QWidget, QHBoxLayout, QTreeWidget, QTreeWidgetItem,
+    QWidget, QHBoxLayout, QTreeWidget,
     QStackedWidget, QMessageBox
 )
 from PyQt5.QtCore import Qt
 
+from ui.tree_builder import TreeBuilder
 from ui.sections.directorio_trabajo import DirectorioTrabajo
 from ui.sections.modelo import Modelo
 from ui.sections.materiales import Materiales
@@ -18,7 +20,6 @@ from ui.sections.run_calculation import RunCalculation
 
 from core.json_manager import JSONManager
 
-import os
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -29,7 +30,7 @@ class MainWindow(QWidget):
 
         # JSON manager y configuración del caso
         self.json_manager = JSONManager()
-        self.case_config  = self.load_case_config()
+        self.case_config = self.load_case_config()
 
         # Layout principal
         main_layout = QHBoxLayout(self)
@@ -38,48 +39,13 @@ class MainWindow(QWidget):
         self.tree = QTreeWidget()
         self.tree.setHeaderHidden(True)
 
-        # Nodos raíz
-        self.item_case         = QTreeWidgetItem(["Case"])
-        self.item_case.setFont(0, self.get_bold_font())
-        self.item_solver_title = QTreeWidgetItem(["Solver"])
-        self.item_solver_title.setFont(0, self.get_bold_font())
-
-        # Hijos bajo 'Case'
-        self.item_directorio     = QTreeWidgetItem(["Directorio de trabajo"])
-        self.item_modelos        = QTreeWidgetItem(["Modelos"])
-        self.item_materiales     = QTreeWidgetItem(["Materiales"])
-        self.item_bc             = QTreeWidgetItem(["Boundary Conditions"])
-        self.item_discrete_phase = QTreeWidgetItem(["Fase Discreta"])
-
-        # Hijos bajo 'Solver' en el orden deseado
-        self.item_methods        = QTreeWidgetItem(["Methods"])
-        self.item_controls       = QTreeWidgetItem(["Controls"])
-        self.item_inicializacion = QTreeWidgetItem(["Inicialización"])
-        self.item_run_calc       = QTreeWidgetItem(["Run Calculation"])
-
-        # Ensamble del árbol
-        self.item_case.addChildren([
-            self.item_directorio,
-            self.item_modelos,
-            self.item_materiales,
-            self.item_bc,
-            self.item_discrete_phase
-        ])
-        self.tree.addTopLevelItem(self.item_case)
-
-        self.tree.addTopLevelItem(self.item_solver_title)
-        for child in [
-            self.item_methods,
-            self.item_controls,
-            self.item_inicializacion,
-            self.item_run_calc
-        ]:
-            self.item_solver_title.addChild(child)
+        # Construir el árbol y obtener el mapeo clave→QTreeWidgetItem
+        self.tree_items = TreeBuilder.build(self.tree)
 
         # StackedWidget
         self.stacked = QStackedWidget()
 
-        # Crear páginas
+        # Crear páginas y añadirlas al stacked
         self.page_directorio     = DirectorioTrabajo(self.case_config)
         self.page_modelos        = Modelo(self.case_config)
         self.page_materiales     = Materiales(self.case_config)
@@ -90,29 +56,43 @@ class MainWindow(QWidget):
         self.page_inicializacion = Inicializacion(os.path.join(os.getcwd(), "temp"))
         self.page_run_calc       = RunCalculation(self.case_config)
 
-        # Añadir páginas al stacked en el mismo orden
-        for pg in [
-            self.page_directorio,      # 0
-            self.page_modelos,         # 1
-            self.page_materiales,      # 2
-            self.page_bc,              # 3
-            self.page_discrete_phase,  # 4
-            self.page_methods,         # 5
-            self.page_controls,        # 6
-            self.page_inicializacion,  # 7
-            self.page_run_calc         # 8
+        for page in [
+            self.page_directorio,      # key: "directorio"
+            self.page_modelos,         # key: "modelos"
+            self.page_materiales,      # key: "materiales"
+            self.page_bc,              # key: "boundary_conditions"
+            self.page_discrete_phase,  # key: "fase_discreta"
+            self.page_methods,         # key: "methods"
+            self.page_controls,        # key: "controls"
+            self.page_inicializacion,  # key: "inicializacion"
+            self.page_run_calc         # key: "run_calculation"
         ]:
-            self.stacked.addWidget(pg)
+            self.stacked.addWidget(page)
 
         # Montar layout
         main_layout.addWidget(self.tree, 1)
         main_layout.addWidget(self.stacked, 4)
         self.setLayout(main_layout)
 
+        # Mapeo de claves a páginas (debe coincidir con TREE_STRUCTURE keys)
+        self.page_map = {
+            "directorio":          self.page_directorio,
+            "modelos":             self.page_modelos,
+            "materiales":          self.page_materiales,
+            "boundary_conditions": self.page_bc,
+            "fase_discreta":       self.page_discrete_phase,
+            "methods":             self.page_methods,
+            "controls":            self.page_controls,
+            "inicializacion":      self.page_inicializacion,
+            "run_calculation":     self.page_run_calc
+        }
+
         # Conexiones de navegación
         self.tree.currentItemChanged.connect(self.on_tree_item_changed)
-        self.tree.setCurrentItem(self.item_directorio)
-        self.tree.expandItem(self.item_solver_title)
+        # Seleccionar la primera página (“directorio”)
+        first_item = self.tree_items.get("directorio")
+        if first_item:
+            self.tree.setCurrentItem(first_item)
 
         # Auto-guardado
         self.page_bc.data_changed.connect(self.auto_save_boundary_conditions)
@@ -121,11 +101,6 @@ class MainWindow(QWidget):
         self.page_controls.data_changed.connect(self.auto_save_controls)
         self.page_run_calc.data_changed.connect(self.auto_save_run_calc)
         self.page_directorio.boundaries_loaded.connect(self.sync_boundary_conditions)
-
-    def get_bold_font(self):
-        f = self.font()
-        f.setBold(True)
-        return f
 
     def load_case_config(self):
         """
@@ -166,30 +141,14 @@ class MainWindow(QWidget):
 
     def on_tree_item_changed(self, current, previous):
         """
-        Cambia la página del stacked según el texto del ítem seleccionado.
+        Cambia la página del stacked según el item seleccionado.
         """
-        text = current.text(0)
-        if text == "Directorio de trabajo":
-            idx = 0
-        elif text == "Modelos":
-            idx = 1
-        elif text == "Materiales":
-            idx = 2
-        elif text == "Boundary Conditions":
-            idx = 3
-        elif text == "Fase Discreta":
-            idx = 4
-        elif text == "Methods":
-            idx = 5
-        elif text == "Controls":
-            idx = 6
-        elif text == "Inicialización":
-            idx = 7
-        elif text == "Run Calculation":
-            idx = 8
-        else:
-            idx = 0
-        self.stacked.setCurrentIndex(idx)
+        for key, item in self.tree_items.items():
+            if item is current:
+                page = self.page_map.get(key)
+                if page:
+                    self.stacked.setCurrentWidget(page)
+                return
 
     def sync_boundary_conditions(self):
         """

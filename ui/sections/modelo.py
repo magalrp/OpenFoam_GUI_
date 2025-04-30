@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,
     QMessageBox, QGroupBox, QLineEdit, QTabWidget, QFormLayout, QCheckBox, QDialog
 )
+from ui.widgets.numeric_line_edit import NumericLineEdit
 from PyQt5.QtCore import Qt
 
 # Diálogos importados
@@ -188,7 +189,7 @@ class Modelo(QWidget):
         self.fv_nPhi.addItems([str(x) for x in range(4, 21)])
         fv_layout.addWidget(self.fv_nPhi)
         fv_layout.addWidget(QLabel("phiRefValue:"))
-        self.fv_phiRefValue = QLineEdit("0.0")
+        self.fv_phiRefValue = NumericLineEdit("0.0")
         fv_layout.addWidget(self.fv_phiRefValue)
         self.fvDOM_widget.setLayout(fv_layout)
         self.fvDOM_widget.setVisible(False)
@@ -196,7 +197,7 @@ class Modelo(QWidget):
         self.p1_widget = QGroupBox("Parámetros P1")
         p1_layout = QHBoxLayout()
         p1_layout.addWidget(QLabel("Absorption Coefficient:"))
-        self.p1_absorption = QLineEdit("0.0")
+        self.p1_absorption = NumericLineEdit("0.0")
         p1_layout.addWidget(self.p1_absorption)
         self.p1_widget.setLayout(p1_layout)
         self.p1_widget.setVisible(False)

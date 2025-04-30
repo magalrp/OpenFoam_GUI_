@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 
 from core.materials_library import list_all_materials
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class CreateMaterialDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -16,7 +16,7 @@ class CreateMaterialDialog(QDialog):
         layout = QVBoxLayout(self)
 
         form = QFormLayout()
-        self.name_edit = QLineEdit()
+        self.name_edit = NumericLineEdit()
         form.addRow("Nombre del material:", self.name_edit)
 
         self.type_combo = QComboBox()

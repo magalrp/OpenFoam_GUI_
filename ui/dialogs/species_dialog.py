@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QHBoxLayout
 )
 from PyQt5.QtCore import Qt
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class SpeciesSelectionDialog(QDialog):
     def __init__(self, parent=None, available_species=None, chosen_species=None):
         super().__init__(parent)

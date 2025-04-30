@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QListWidget, QListWidgetItem, QDialog, QGroupBox, QGridLayout, QScrollArea,
     QHeaderView, QSpacerItem, QSizePolicy
 )
+from ui.widgets.numeric_line_edit import NumericLineEdit
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from ui.dialogs.injection_dialogs.patch_injection_dialog import PatchInjectionDialog
@@ -202,7 +203,7 @@ class FaseDiscreta(QWidget):
 
         rho_layout = QHBoxLayout()
         rho_label = QLabel("Densidad (rho0) [kg/m³]:")
-        self.rho0_input = QLineEdit()
+        self.rho0_input = NumericLineEdit()
         self.rho0_input.setText(str(self.case_config.get("discrete_phase_models", {}).get("rho0", "1000")))
         self.rho0_input.editingFinished.connect(self.update_rho0)
         rho_layout.addWidget(rho_label)
@@ -211,7 +212,7 @@ class FaseDiscreta(QWidget):
 
         T_layout = QHBoxLayout()
         T_label = QLabel("Temperatura Inicial (T0) [K]:")
-        self.T0_input = QLineEdit()
+        self.T0_input = NumericLineEdit()
         self.T0_input.setText(str(self.case_config.get("discrete_phase_models", {}).get("T0", "300")))
         self.T0_input.editingFinished.connect(self.update_T0)
         T_layout.addWidget(T_label)
@@ -220,7 +221,7 @@ class FaseDiscreta(QWidget):
 
         Cp_layout = QHBoxLayout()
         Cp_label = QLabel("Capacidad Calorífica (Cp0) [J/(kg·K)]:")
-        self.Cp0_input = QLineEdit()
+        self.Cp0_input = NumericLineEdit()
         self.Cp0_input.setText(str(self.case_config.get("discrete_phase_models", {}).get("Cp0", "4186")))
         self.Cp0_input.editingFinished.connect(self.update_Cp0)
         Cp_layout.addWidget(Cp_label)

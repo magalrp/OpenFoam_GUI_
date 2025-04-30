@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 
 from core.materials_library import get_material_properties
-
+from ui.widgets.numeric_line_edit import NumericLineEdit
 class LoadMaterialsDialog(QDialog):
     def __init__(self, available_material_types, parent=None):
         super().__init__(parent)
