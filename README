@@ -1,102 +1,135 @@
-Resumen del estado actual
+# OpenFOAM GUI Setup Interface
 
-Hemos desarrollado un sistema en Python para generar archivos de configuración de OpenFOAM en el directorio temp/DP0/0.
-Actualmente, se generan los archivos U, T, p, p_rgh, k, epsilon, omega, nut y, si la química está activa, los archivos de especies y el Ydefault.
-Antes de crear dichos archivos, se elimina todo lo existente en temp/DP0/0 para evitar residuos.
-La GUI está dividida en secciones (boundary_conditions, inicialización, selección de solver, etc.) y se basa en un orquestador (conf_bc.py) que lee boundary_conditions.json y crea los archivos correspondientes.
-Estructura actual de archivos (en forma de árbol)
+Este proyecto ofrece una interfaz gráfica en Python/PyQt5 para configurar, inicializar y lanzar casos de OpenFOAM de forma guiada.
 
-scss
-&HOME/
- ├─ main.py                            (Archivo principal para iniciar la GUI)
- ├─ config.json                        (Configuración general: rutas, settings del solver, etc.)
- ├─ ui/
- │   ├─ main_window.py                 (Ventana principal de la GUI)
- │   ├─ sections/
- │   │     ├─ boundary_conditions.py   (Edición de condiciones de contorno)
- │   │     ├─ inicializacion.py        (Generación de archivos iniciales: U, T, p, etc.)
- │   │     ├─ seleccion_solver.py      (Selección y configuración del solver)
- │   │     ├─ modelo.py                (Configuración de modelos: gravedad, energía, turbulencia, radiación, especies, etc.)
- │   │     ├─ directorio_trabajo.py    (Gestión del directorio de trabajo)
- │   │     ├─ fase_discreta.py         (Configuración de la fase discreta: propiedades, inyectores, composición, particle tracking, etc.)
- │   │     └─ materiales.py            (Gestión de materiales)
- │   │
- │   ├─ conf/                          (Configuración general de la GUI)
- │   │     ├─ conf_constant.py         (Orquestador principal para generar los archivos del directorio constant)
- │   │     ├─ conf_bc.py
- │   │     ├─ bc/                      (Genera archivos para condiciones de contorno)
- │   │     │     ├─ conf_U.py          (Genera archivo U)
- │   │     │     ├─ conf_T.py          (Genera archivo T)
- │   │     │     ├─ conf_P.py          (Genera archivo p)
- │   │     │     ├─ conf_p_rgh.py      (Genera archivo p_rgh)
- │   │     │     ├─ conf_k.py          (Genera archivo k)
- │   │     │     ├─ conf_alphat.py     (Genera archivo alphat)
- │   │     │     ├─ conf_epsilon.py    (Genera archivo epsilon)
- │   │     │     ├─ conf_omega.py      (Genera archivo omega)
- │   │     │     ├─ conf_nut.py        (Genera archivo nut)
- │   │     │     ├─ conf_especies.py   (Genera archivos de especies y Ydefault)
- │   │     │     └─ conf_Ydefault.py   (Genera archivo Ydefault)
- │   │     │
- │   │     └─ constant/                      (Módulos específicos para la generación de archivos constant de OpenFOAM)
- │   │            ├─ conf_turbulenceProperties.py   (Genera el archivo turbulenceProperties)
- │   │            ├─ conf_radiation.py                (Genera el archivo radiationProperties)
- │   │            ├─ conf_g.py                        (Genera el archivo g, para la gravedad)
- │   │            ├─ conf_chem.py                     (Genera el archivo chemistryProperties)
- │   │            ├─ conf_combustion.py               (Genera el archivo combustionProperties)
- │   │            └─ conf_particleTrack.py            (Genera el archivo particleTrackProperties)
- │   │
- │   └─ dialogs/                         (Ventanas de diálogo para configuraciones específicas)
- │         ├─ chemical_options_dialog.py     (Opciones para química)
- │         ├─ combustion_options_dialog.py     (Opciones para combustión)
- │         ├─ create_material_dialog.py        (Creación de nuevos materiales)
- │         ├─ injection_dialog.py               (Opciones generales de inyección)
- │         ├─ inlet_bc_dialog.py                (Configuración de condiciones de entrada tipo Inlet)
- │         ├─ inlet_outlet_bc_dialog.py         (Configuración de condiciones Inlet/Outlet)
- │         ├─ load_materials_dialog.py          (Carga de materiales)
- │         ├─ new_material_dialog.py            (Creación de nuevos materiales)
- │         ├─ radiation_options_dialog.py       (Configuración avanzada de radiación)
- │         ├─ reactions_dialog.py               (Configuración de reacciones químicas)
- │         ├─ species_dialog.py                 (Configuración de especies)
- │         ├─ wall_bc_dialog.py                 (Configuración de condiciones de pared)
- │         └─ injection_dialogs/                (Opciones específicas de inyección)
- │               ├─ cone_nozzle_injection_dialog.py   (Inyección con boquilla cónica)
- │               ├─ patch_injection_dialog.py           (Inyección por patch)
- │               ├─ type_selection_dialog.py            (Selección del tipo de inyector)
- │               └─ dialog_opt_disperse_fase.py         (Configuración de particleTrackProperties)
- │
- ├─ core/                               (Módulos de soporte)
- │    ├─ boundary_parser.py             (Parser para archivos de boundary)
- │    ├─ config.py                      (Gestión de configuraciones generales)
- │    ├─ json_manager.py                (Manejo de archivos JSON)
- │    ├─ materials_library.py           (Biblioteca de materiales)
- │    └─ species_library.py             (Biblioteca de especies)
- │  
- └─ temp/                               (Archivos y directorios temporales)
-      ├─ boundary_conditions.json       (Configuración de boundary conditions)
-      ├─ case_config.json                 (Configuración general del caso)
-      ├─ materials.json                   (Configuración de materiales)
-      ├─ solver_settings.json             (Configuración del solver)
-      ├─ Disperse_fase.json               (Configuración de la fase discreta: discrete_phase_models, injections, particleTrackProperties, etc.)
-      └─ DP0/
-           ├─ 0/                        (Archivos de configuración temporales: U, T, p, p_rgh, k, epsilon, omega, nut, etc.)
-           └─ constant/                 (Archivos constantes generados para OpenFOAM)
-                 ├─ turbulenceProperties
-                 ├─ radiationProperties
-                 ├─ g
-                 ├─ chemistryProperties         (Si las especies están activas)
-                 ├─ combustionProperties          (Si la combustión está activa)
-                 └─ particleTrackProperties       (Si la fase discreta está activa)
+## Estado Actual
 
+1. **Secciones de la GUI**  
+   - **Caso**  
+     - Directorio de trabajo  
+     - Modelos (gravedad, energía, turbulencia, radiación, química)  
+     - Materiales (+ propiedades termofísicas)  
+     - Condiciones de contorno  
+     - Fase discreta  
+   - **Solucionador**  
+     - Métodos  
+     - Controles  
+     - Ejecutar cálculo  
+       - Unifica antes “Inicialización” + “Run calculation”  
+       - Genera **todos** los archivos en `temp/DP0`  
+       - Opciones de cálculo paralelo con `decomposeParDict`
 
+2. **Generación de Archivos OpenFOAM**  
+   - **En `temp/DP0/0/`**:  
+     U, T, p, p_rgh, k, epsilon, omega, nut, alphat, Ydefault (si química activa)  
+   - **En `temp/DP0/constant/`**:  
+     - `turbulenceProperties`  
+     - `radiationProperties`  
+     - `g`  
+     - `chemistryProperties` (si especies activas)  
+     - `combustionProperties` (si combustión activa)  
+     - `particleTrackProperties` (si fase discreta activa)
 
-Próximos pasos (enfoque hacia el directorio constant/ de OpenFOAM)
+3. **Persistencia JSON**  
+   - Cada sección guarda/valida automáticamente su JSON en `temp/*.json`  
+   - `core/json_manager.py` usa esquemas (`/schema/*.schema.json`)  
 
-Diferentes lógicas de escritura y borrado: en función de la situación (qué tipo de solver se ha seleccionado, si la simulación es monofásica o multifásica, si la química está activa, etc.), ChatGPT podría recomendar lógicas de escritura y borrado de archivos:
-transportProperties cuando es monofásico vs. multifásico.
-thermophysicalProperties según si hay combustión, reacciones, o si es isoterma.
-Selecting turbulenceProperties dependiendo del modelo (kEpsilon, kOmega, laminar).
-Etc.
-Implementación en la GUI: se le pedirá a ChatGPT que explique cómo se podrían generar dichos archivos desde la sección constant de la GUI, integrándose con la lógica ya existente (sin eliminar funcionalidades previas). Si ChatGPT detecta que podría ser necesario otro submódulo (por ejemplo, conf_constant.py) para orquestar la creación de dichos archivos, lo propondrá.
-Explicaciones y justificaciones: se espera que ChatGPT explique por qué sugiere estos archivos o por qué crea cierta lógica adicional, en caso de ser útil para OpenFOAM y no haberse contemplado antes.
-Instrucciones para ChatGPT
-A partir de este resumen y de la estructura en forma de árbol, proponer de qué forma se podrían generar y/o borrar los archivos de la carpeta constant (o su equivalente) en OpenFOAM, teniendo en cuenta la información disponible en la GUI (solver, química, etc.). Explicar cómo se integrarían en la lógica actual, así como por qué se añaden o modifican ciertos aspectos que no se han solicitado explícitamente pero que son necesarios. 
+## Estructura de Archivos (fiel al repositorio)
+
+OpenFoam_GUI_/  
+├── main.py  
+├── config.json  
+├── requirements.txt  
+├── README.md  
+├── ui/  
+│   ├── main_window.py  
+│   ├── tree_builder.py  
+│   ├── dialogs/  
+│   │   ├── chemical_options_dialog.py  
+│   │   ├── combustion_options_dialog.py  
+│   │   ├── create_material_dialog.py  
+│   │   ├── injection_dialog.py  
+│   │   ├── inlet_bc_dialog.py  
+│   │   ├── inlet_outlet_bc_dialog.py  
+│   │   ├── load_materials_dialog.py  
+│   │   ├── new_material_dialog.py  
+│   │   ├── radiation_options_dialog.py  
+│   │   ├── reactions_dialog.py  
+│   │   ├── species_dialog.py  
+│   │   ├── wall_bc_dialog.py  
+│   │   └── injection_dialogs/  
+│   │       ├── cone_nozzle_injection_dialog.py  
+│   │       ├── patch_injection_dialog.py  
+│   │       ├── type_selection_dialog.py  
+│   │       └── dialog_opt_disperse_fase.py  
+│   ├── sections/  
+│   │   ├── directorio_trabajo.py  
+│   │   ├── modelo.py  
+│   │   ├── materiales.py  
+│   │   ├── boundary_conditions.py  
+│   │   ├── fase_discreta.py  
+│   │   ├── methods.py  
+│   │   ├── controls.py  
+│   │   └── run_calculation.py  
+│   └── conf/  
+│       ├── conf_constant.py  
+│       ├── conf_bc.py  
+│       ├── bc/  
+│       │   ├── conf_U.py  
+│       │   ├── conf_T.py  
+│       │   ├── conf_P.py  
+│       │   ├── conf_p_rgh.py  
+│       │   ├── conf_k.py  
+│       │   ├── conf_alphat.py  
+│       │   ├── conf_epsilon.py  
+│       │   ├── conf_omega.py  
+│       │   ├── conf_nut.py  
+│       │   ├── conf_especies.py  
+│       │   └── conf_Ydefault.py  
+│       └── constant/  
+│           ├── conf_turbulenceProperties.py  
+│           ├── conf_radiation.py  
+│           ├── conf_g.py  
+│           ├── conf_chem.py  
+│           ├── conf_combustion.py  
+│           └── conf_particleTrack.py  
+├── core/  
+│   ├── json_manager.py  
+│   ├── boundary_parser.py  
+│   ├── config.py  
+│   ├── materials_library.py  
+│   └── species_library.py  
+└── temp/  
+    ├── case_config.json  
+    ├── materials.json  
+    ├── boundary_conditions.json  
+    ├── fvSchemes.json  
+    ├── fvSolution.json  
+    ├── controlDict.json  
+    ├── Disperse_fase.json  
+    └── DP0/  
+        ├── 0/  
+        └── constant/  
+
+## Próximos Pasos
+
+1. **`transportProperties`**  
+   - Monofásico vs. multifásico  
+2. **Cálculo paralelo**  
+   - `decomposeParDict`: simple, hierarchical, scotch…  
+   - Botón “Decompose & Run in parallel”  
+3. **Visualización embebida**  
+   - Integrar ParaView Qt interactor  
+4. **Temas y UX**  
+   - Oscuro/Claro, iconos, divisiones más claras  
+5. **Internacionalización**  
+   - Multi-idioma (ES/EN)  
+6. **CI/CD & Tests**  
+   - GitHub Actions, tests de generación JSON y conf_*  
+7. **Empaquetado**  
+   - AppImage, MSI, PyPI  
+
+---
+
+**Licencia MIT** – ¡Contribuciones bienvenidas!
+"""
