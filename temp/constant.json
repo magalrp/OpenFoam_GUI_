@@ -1,0 +1,55 @@
+{
+    "gravity_active": true,
+    "gravity_vector": [
+        0.0,
+        0.0,
+        -1.0
+    ],
+    "energy_active": true,
+    "turbulenceModel": {
+        "category": "RAS",
+        "model": "RealizablekEpsilon"
+    },
+    "radiation_active": false,
+    "radiation_options": {
+        "radiationModel": "viewFactor",
+        "radiation_model": "none",
+        "frequency": 10.0
+    },
+    "multiPhaseActive": false,
+    "especiesActive": true,
+    "phase": "singlePhase",
+    "especies_options": {
+        "modelo": "None",
+        "activeSpecies": [
+            "N2",
+            "O2",
+            "H2O",
+            "CH4",
+            "CO2"
+        ],
+        "reactions": {
+            "O2": "reactant",
+            "H2": "reactant",
+            "H2O": "product",
+            "CH4": "reactant",
+            "CO2": "product"
+        },
+        "combustionModel": "PaSR",
+        "combustionParams": {
+            "Cmix": 4.0,
+            "A": null,
+            "B": null,
+            "ZFen": null,
+            "tauRes": null,
+            "reactionRateFactor": null
+        },
+        "chemSolver": "chemkin",
+        "chemSolverParams": {
+            "initial_time": null,
+            "ode_solver": null,
+            "eps": null
+        }
+    },
+    "futureExtension": null
+}

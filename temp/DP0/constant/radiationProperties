@@ -1,0 +1,23 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \      /  Field         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \    /   Operation     |                                                 |
+|   \  /    And           |                                                 |
+|    \/     Manipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      radiationProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+radiation       off;
+
+radiationModel  none;
+
+solverFreq      10;
+
+// ************************************************************************* //

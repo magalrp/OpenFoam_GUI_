@@ -1,0 +1,5 @@
+{
+    "simulationType": "Estacionario",
+    "calculationType": "Compresible",
+    "solver": "reactingParcelFoam"
+}

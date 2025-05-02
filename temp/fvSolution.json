@@ -1,0 +1,65 @@
+{
+    "solvers": {
+        "rho.*": {
+            "solver": "diagonal",
+            "smoother": "DICGaussSeidel",
+            "tolerance": 1e-05,
+            "relTol": 0.0
+        },
+        "p_rgh": {
+            "solver": "diagonal",
+            "smoother": "DICGaussSeidel",
+            "tolerance": 1e-06,
+            "relTol": 0.0
+        },
+        "U": {
+            "solver": "diagonal",
+            "smoother": "DICGaussSeidel",
+            "tolerance": 1e-06,
+            "relTol": 0.0
+        },
+        "N2": {
+            "solver": "diagonal",
+            "tolerance": 1e-06
+        },
+        "O2": {
+            "solver": "diagonal",
+            "tolerance": 1e-06
+        },
+        "H2O": {
+            "solver": "diagonal",
+            "tolerance": 1e-06
+        },
+        "CH4": {
+            "solver": "diagonal",
+            "tolerance": 1e-06
+        },
+        "CO2": {
+            "solver": "diagonal",
+            "tolerance": 1e-06
+        }
+    },
+    "potentialFlow": {
+        "nNonOrthogonalCorrectors": 5
+    },
+    "PIMPLE": {
+        "nOuterCorrectors": 1,
+        "nCorrectors": 3,
+        "nNonOrthogonalCorrectors": 0,
+        "momentumPredictor": true,
+        "pMaxFactor": 1.5,
+        "pMinFactor": 0.9
+    },
+    "relaxationFactors": {
+        "equations": {
+            "rho.*": 1.0,
+            "p_rgh": 1.0,
+            "U": 1.0,
+            "N2": 1.0,
+            "O2": 1.0,
+            "H2O": 1.0,
+            "CH4": 1.0,
+            "CO2": 1.0
+        }
+    }
+}

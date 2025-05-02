@@ -1,0 +1,76 @@
+{
+    "discrete_phase_active": true,
+    "discrete_phase_models": {
+        "dispersionModel": "none",
+        "patchInteractionModel": {
+            "model": "standardWallInteraction",
+            "type": "standardWallInteraction"
+        },
+        "heatTransferModel": {
+            "model": "RanzMarshallCoeffs",
+            "BirdCorrection": false
+        },
+        "compositionModel": {
+            "model": "singleMixtureFractionCoeffs",
+            "speciesType": {},
+            "fractions": {}
+        },
+        "phaseChangeModel": {
+            "model": "liquidEvaporationCoeffs",
+            "enthalpyTransfer": "enthalpyDifference",
+            "activeLiquids": []
+        },
+        "devolatilisationModel": "none",
+        "surfaceReactionModel": "none",
+        "stochasticCollisionModel": "none",
+        "surfaceFilmModel": "none",
+        "radiation": "none"
+    },
+    "injections": [
+        {
+            "name": "model1",
+            "type": "coneNozzleInjection",
+            "parameters": {
+                "SOI": 1.0,
+                "massTotal": 1.0,
+                "outerDiameter": 0.0,
+                "innerDiameter": 0.01,
+                "duration": 0.0,
+                "sizeDistribution": "RosinRammlerDistribution",
+                "sizeDistribution_minValue": 1.0,
+                "sizeDistribution_maxValue": 0.0,
+                "sizeDistribution_lambda": 1.0,
+                "sizeDistribution_n": 0.0,
+                "CdValue": 0.0,
+                "thetaInnerValue": 0.0,
+                "thetaOuterValue": 0.0,
+                "parcelBasisType": [
+                    "mass"
+                ],
+                "injectionMethod": [
+                    "disc"
+                ],
+                "flowType": "flowRateAndDischarge",
+                "velocity": [
+                    0.0,
+                    1.0,
+                    0.0
+                ],
+                "parcelsPerSecond": 100000.0,
+                "position": [
+                    0.0,
+                    1.0,
+                    0.0
+                ]
+            }
+        }
+    ],
+    "particleTrackProperties": {
+        "cloudName": "genericCloud",
+        "sampleFrequency": 1,
+        "maxPositions": 2000000.0,
+        "setFormat": "vtk",
+        "fields": "",
+        "maxTracks": -1
+    }
+}

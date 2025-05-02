@@ -1,0 +1,32 @@
+{
+    "materials": [
+        {
+            "name": "Aire",
+            "type": "fluid",
+            "properties": {
+                "densityModel": "constant",
+                "densityValue": 1.225,
+                "viscosityModel": "constant",
+                "viscosityValue": 1.8e-05,
+                "cpModel": "constant",
+                "cpValue": 1005.0,
+                "conductivityModel": "constant",
+                "conductivityValue": 0.03
+            }
+        },
+        {
+            "name": "Agua",
+            "type": "fluid",
+            "properties": {
+                "densityModel": "constant",
+                "densityValue": 1000.0,
+                "viscosityModel": "constant",
+                "viscosityValue": 1.8e-05,
+                "cpModel": "constant",
+                "cpValue": 1005.0,
+                "conductivityModel": "constant",
+                "conductivityValue": 0.03
+            }
+        }
+    ]
+}

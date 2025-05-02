@@ -1,0 +1,387 @@
+{
+    "solverSettings": {
+        "solver": "reactingParcelFoam",
+        "simulationType": "Transitorio",
+        "calculationType": "Incompresible"
+    },
+    "controlDict": {
+        "startTime": 0.0,
+        "endTime": 2.0,
+        "deltaT": 0.001,
+        "adjustTimeStep": true,
+        "maxCo": 2.5,
+        "maxDeltaT": 1e-06,
+        "nOuterCorrectors": null,
+        "nInnerIterations": null,
+        "writeControl": "timeStep",
+        "writeInterval": 1.0,
+        "writeFormat": "ascii",
+        "writePrecision": 10,
+        "writeCompression": false
+    },
+    "fvSchemes": {
+        "gradSchemes": "Gauss linear",
+        "divSchemes": "Gauss upwind",
+        "laplacianSchemes": "Gauss linear uncorrected",
+        "interpolationSchemes": "linear",
+        "ddtSchemes": "Euler",
+        "snGradSchemes": "uncorrected",
+        "wallDist": "meshWave"
+    },
+    "fvSolution": {
+        "solvers": {
+            "rho.*": {
+                "solver": "diagonal",
+                "smoother": "DICGaussSeidel",
+                "tolerance": 1e-05,
+                "relTol": 0.0
+            },
+            "p_rgh": {
+                "solver": "diagonal",
+                "smoother": "DICGaussSeidel",
+                "tolerance": 1e-06,
+                "relTol": 0.0
+            },
+            "U": {
+                "solver": "diagonal",
+                "smoother": "DICGaussSeidel",
+                "tolerance": 1e-06,
+                "relTol": 0.0
+            },
+            "N2": {
+                "solver": "diagonal",
+                "tolerance": 1e-06
+            },
+            "O2": {
+                "solver": "diagonal",
+                "tolerance": 1e-06
+            },
+            "H2O": {
+                "solver": "diagonal",
+                "tolerance": 1e-06
+            },
+            "CH4": {
+                "solver": "diagonal",
+                "tolerance": 1e-06
+            },
+            "CO2": {
+                "solver": "diagonal",
+                "tolerance": 1e-06
+            }
+        },
+        "potentialFlow": {
+            "nNonOrthogonalCorrectors": 5
+        },
+        "PIMPLE": {
+            "nOuterCorrectors": 1,
+            "nCorrectors": 3,
+            "nNonOrthogonalCorrectors": 0,
+            "momentumPredictor": true,
+            "pMaxFactor": 1.5,
+            "pMinFactor": 0.9
+        },
+        "relaxationFactors": {
+            "equations": {
+                "rho.*": 1.0,
+                "p_rgh": 1.0,
+                "U": 1.0,
+                "N2": 1.0,
+                "O2": 1.0,
+                "H2O": 1.0,
+                "CH4": 1.0,
+                "CO2": 1.0
+            }
+        }
+    },
+    "solver": "icoFoam",
+    "simulation_type": "Estacionario",
+    "calculation_type": "Incompresible",
+    "turbulenceActive": true,
+    "turbulenceModel": {
+        "category": "RAS",
+        "model": "kEpsilon"
+    },
+    "chemistryActive": true,
+    "chosen_species": [
+        "N2",
+        "O2",
+        "H2O",
+        "CH4",
+        "CO2"
+    ],
+    "reactants": [],
+    "products": [],
+    "boundaryConditions": {
+        "INLET_Secondary_flow": {
+            "type": "Inlet",
+            "value": "",
+            "velocityType": "flowRateInletVelocity",
+            "velocityValue": 0.003,
+            "velocityInit": 0.0,
+            "kType": "turbulentIntensityKineticEnergyInlet",
+            "kValue": 0.1,
+            "kIntensity": 0.05,
+            "epsilonType": "turbulentMixingLengthFrequencyInlet",
+            "epsilonValue": 10.0,
+            "epsilonMixingLength": 0.1,
+            "omegaType": null,
+            "omegaValue": null,
+            "omegaMixingLength": null,
+            "temperature": 350.0,
+            "N2_chemType": "fixedValue",
+            "N2_chemValue": 0.77,
+            "O2_chemType": "fixedValue",
+            "O2_chemValue": 0.23,
+            "H2O_chemType": "fixedValue",
+            "H2O_chemValue": 0.0,
+            "CH4_chemType": "fixedValue",
+            "CH4_chemValue": 0.0,
+            "CO2_chemType": "fixedValue",
+            "CO2_chemValue": 0.0
+        },
+        "outlet": {
+            "type": "Outlet",
+            "value": "",
+            "pressureValue": 0.0,
+            "kType": "inletOutlet",
+            "kValue": 0.1,
+            "epsilonType": "inletOutlet",
+            "epsilonValue": 10.0,
+            "omegaType": null,
+            "omegaValue": null,
+            "temperature": 300.0,
+            "epsilonMixingLength": 0.0,
+            "omegaMixingLength": null,
+            "N2_chemType": "fixedValue",
+            "N2_chemValue": 1.0,
+            "O2_chemType": "fixedValue",
+            "O2_chemValue": 0.0,
+            "H2O_chemType": "fixedValue",
+            "H2O_chemValue": 0.0,
+            "CH4_chemType": "fixedValue",
+            "CH4_chemValue": 0.0,
+            "CO2_chemType": "fixedValue",
+            "CO2_chemValue": 0.0,
+            "velocityType": "inletOutlet",
+            "velocityValue": 0.0,
+            "velocityInit": 0.0,
+            "kIntensity": 0.0
+        },
+        "walls": {
+            "type": "Wall",
+            "value": "",
+            "adiabatic": true,
+            "wallTemperature": 500.0,
+            "noFriction": true,
+            "alphaType": "fixedValue",
+            "alphaValue": 1.0,
+            "nutType": "fixedValue",
+            "nutValue": 1e-05,
+            "kType": "fixedValue",
+            "kValue": 0.5,
+            "epsilonType": "fixedValue",
+            "epsilonValue": 10.0,
+            "omegaType": null,
+            "omegaValue": null,
+            "temperature": 300.0,
+            "Cmu": null,
+            "kappa": null,
+            "E": null,
+            "omegaValueOption": "$internalField",
+            "omegaMixingLength": null,
+            "kIntensity": 0.0,
+            "epsilonMixingLength": 0.0,
+            "N2_chemType": "fixedValue",
+            "N2_chemValue": 0.0,
+            "O2_chemType": "fixedValue",
+            "O2_chemValue": 0.0,
+            "H2O_chemType": "fixedValue",
+            "H2O_chemValue": 0.0,
+            "CH4_chemType": "fixedValue",
+            "CH4_chemValue": 0.0,
+            "CO2_chemType": "fixedValue",
+            "CO2_chemValue": 0.0,
+            "velocityType": "",
+            "velocityValue": 0.0,
+            "velocityInit": 0.0,
+            "thermalType": "fixedValue",
+            "slipType": "noSlip",
+            "slipVelocity": 0.0,
+            "useWallFunctions": true,
+            "name": ""
+        },
+        "INLET_Secondary_Flow": {
+            "type": "Inlet",
+            "value": ""
+        }
+    },
+    "materials": [
+        {
+            "name": "Aire",
+            "type": "fluid",
+            "properties": {
+                "densityModel": "constant",
+                "densityValue": 1.225,
+                "viscosityModel": "constant",
+                "viscosityValue": 1.8e-05,
+                "cpModel": "constant",
+                "cpValue": 1005.0,
+                "conductivityModel": "constant",
+                "conductivityValue": 0.03
+            }
+        },
+        {
+            "name": "Agua",
+            "type": "fluid",
+            "properties": {
+                "densityModel": "constant",
+                "densityValue": 1000.0,
+                "viscosityModel": "constant",
+                "viscosityValue": 1.8e-05,
+                "cpModel": "constant",
+                "cpValue": 1005.0,
+                "conductivityModel": "constant",
+                "conductivityValue": 0.03
+            }
+        }
+    ],
+    "chemical_options": {},
+    "combustion_options": {},
+    "radiation_options": {
+        "radiationModel": "viewFactor",
+        "radiation_model": "none",
+        "frequency": 10.0
+    },
+    "gravity_active": true,
+    "combustion_active": false,
+    "radiation_active": false,
+    "inert_species": [],
+    "injections": [
+        {
+            "name": "model1",
+            "type": "coneNozzleInjection",
+            "parameters": {
+                "SOI": 1.0,
+                "massTotal": 1.0,
+                "outerDiameter": 0.0,
+                "innerDiameter": 0.01,
+                "duration": 0.0,
+                "sizeDistribution": "RosinRammlerDistribution",
+                "sizeDistribution_minValue": 1.0,
+                "sizeDistribution_maxValue": 0.0,
+                "sizeDistribution_lambda": 1.0,
+                "sizeDistribution_n": 0.0,
+                "CdValue": 0.0,
+                "thetaInnerValue": 0.0,
+                "thetaOuterValue": 0.0,
+                "parcelBasisType": [
+                    "mass"
+                ],
+                "injectionMethod": [
+                    "disc"
+                ],
+                "flowType": "flowRateAndDischarge",
+                "velocity": [
+                    0.0,
+                    1.0,
+                    0.0
+                ],
+                "parcelsPerSecond": 100000.0,
+                "position": [
+                    0.0,
+                    1.0,
+                    0.0
+                ]
+            }
+        }
+    ],
+    "discrete_phase_models": {
+        "dispersionModel": "none",
+        "patchInteractionModel": {
+            "model": "standardWallInteraction",
+            "type": "standardWallInteraction"
+        },
+        "heatTransferModel": {
+            "model": "RanzMarshallCoeffs",
+            "BirdCorrection": false
+        },
+        "compositionModel": {
+            "model": "singleMixtureFractionCoeffs",
+            "speciesType": {},
+            "fractions": {}
+        },
+        "phaseChangeModel": {
+            "model": "liquidEvaporationCoeffs",
+            "enthalpyTransfer": "enthalpyDifference",
+            "activeLiquids": []
+        },
+        "devolatilisationModel": "none",
+        "surfaceReactionModel": "none",
+        "stochasticCollisionModel": "none",
+        "surfaceFilmModel": "none",
+        "radiation": "none"
+    },
+    "ambientPressure": 101325.0,
+    "gravity_vector": [
+        0.0,
+        0.0,
+        -1.0
+    ],
+    "energy_active": true,
+    "multiPhaseActive": false,
+    "especiesActive": true,
+    "phase": "singlePhase",
+    "especies_options": {
+        "modelo": "None",
+        "activeSpecies": [
+            "N2",
+            "O2",
+            "H2O",
+            "CH4",
+            "CO2"
+        ],
+        "reactions": {
+            "O2": "reactant",
+            "H2": "reactant",
+            "H2O": "product",
+            "CH4": "product",
+            "CO2": "product"
+        },
+        "combustionModel": "PaSR",
+        "combustionParams": {
+            "Cmix": 2.0,
+            "A": null,
+            "B": null,
+            "ZFen": null,
+            "tauRes": null,
+            "reactionRateFactor": null
+        },
+        "chemSolver": "ODE",
+        "chemSolverParams": {
+            "initial_time": 1e-05,
+            "ode_solver": "seulex",
+            "eps": 0.05
+        }
+    },
+    "futureExtension": null,
+    "thermophysicalProperties": {
+        "type": "heRhoThermo",
+        "mixture": "reactingMixture",
+        "transport": "sutherland",
+        "thermo": "janaf",
+        "energy": "sensibleEnthalpy",
+        "equationOfState": "perfectGas",
+        "chemkin_dir": "<case>/chemkin",
+        "newFormat": true
+    },
+    "ambientTemperature": 300.0,
+    "discrete_phase_active": true,
+    "particleTrackProperties": {
+        "cloudName": "genericCloud",
+        "sampleFrequency": 1,
+        "maxPositions": 2000000.0,
+        "setFormat": "vtk",
+        "fields": "",
+        "maxTracks": -1
+    }
+}

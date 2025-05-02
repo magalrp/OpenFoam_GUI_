@@ -1,0 +1,21 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \      /  Field         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \    /   Operation     | Version:  v2406                                 |
+|   \  /    And           | Website:  www.openfoam.com                      |
+|    \/     Manipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       uniformDimensionedVectorField;
+    object      g;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -2 0 0 0 0];
+value           (0.0 0.0 -9.81);
+
+
+// ************************************************************************* //

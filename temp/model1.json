@@ -1,0 +1,37 @@
+{
+    "name": "model1",
+    "type": "coneNozzleInjection",
+    "parameters": {
+        "SOI": 1.0,
+        "massTotal": 1.0,
+        "outerDiameter": 0.0,
+        "innerDiameter": 0.01,
+        "duration": 0.0,
+        "sizeDistribution": "RosinRammlerDistribution",
+        "sizeDistribution_minValue": 1.0,
+        "sizeDistribution_maxValue": 0.0,
+        "sizeDistribution_lambda": 1.0,
+        "sizeDistribution_n": 0.0,
+        "CdValue": 0.0,
+        "thetaInnerValue": 0.0,
+        "thetaOuterValue": 0.0,
+        "parcelBasisType": [
+            "mass"
+        ],
+        "injectionMethod": [
+            "disc"
+        ],
+        "flowType": "flowRateAndDischarge",
+        "velocity": [
+            0.0,
+            1.0,
+            0.0
+        ],
+        "parcelsPerSecond": 100000.0,
+        "position": [
+            0.0,
+            1.0,
+            0.0
+        ]
+    }
+}

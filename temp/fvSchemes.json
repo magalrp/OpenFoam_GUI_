@@ -1,0 +1,9 @@
+{
+    "gradSchemes": "Gauss linear",
+    "divSchemes": "Gauss upwind",
+    "laplacianSchemes": "Gauss linear uncorrected",
+    "interpolationSchemes": "linear",
+    "ddtSchemes": "Euler",
+    "snGradSchemes": "uncorrected",
+    "wallDist": "meshWave"
+}
