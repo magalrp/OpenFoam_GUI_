@@ -119,7 +119,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
     # 7) Generar archivos básicos (U, T, p, p_rgh)
     try:
         u_file_path = os.path.join(target_dir, "U")
-        # Versión actual de conf_U: generate_u_file(temp_dir, u_file_path)
         generate_u_file(temp_dir, u_file_path)
         logging.info(f"Archivo 'U' generado en {u_file_path}.")
     except Exception as e:
@@ -130,7 +129,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
 
     try:
         t_file_path = os.path.join(target_dir, "T")
-        # Versión actual de conf_T: generate_t_file(temp_dir, t_file_path)
         generate_t_file(temp_dir, t_file_path)
         logging.info(f"Archivo 'T' generado en {t_file_path}.")
     except Exception as e:
@@ -141,7 +139,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
 
     try:
         p_file_path = os.path.join(target_dir, "p")
-        # Nuevo: llamamos a generate_p_file(temp_dir, p_file_path) en lugar de (boundary_conditions, p_file_path)
         generate_p_file(temp_dir, p_file_path)
         logging.info(f"Archivo 'p' generado en {p_file_path}.")
     except Exception as e:
@@ -173,7 +170,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
             logging.error(error_msg)
             return
     else:
-        # Eliminar k
         if os.path.exists(k_file_path):
             try:
                 os.remove(k_file_path)
@@ -186,7 +182,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
     omega_file_path   = os.path.join(target_dir, "omega")
 
     if turbulence_model == "kEpsilon":
-        # Generar epsilon si epsilon_active
         if epsilon_active:
             try:
                 generate_epsilon_file(temp_dir, epsilon_file_path)
@@ -201,7 +196,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
                 os.remove(epsilon_file_path)
                 logging.info(f"Archivo 'epsilon' eliminado (kepsilon).")
 
-        # Eliminar omega
         if os.path.exists(omega_file_path):
             try:
                 os.remove(omega_file_path)
@@ -210,7 +204,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
                 logging.warning(f"No se pudo eliminar 'omega': {e}")
 
     elif turbulence_model == "kOmega":
-        # Generar omega si omega_active
         if omega_active:
             try:
                 generate_omega_file(temp_dir, omega_file_path)
@@ -225,7 +218,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
                 os.remove(omega_file_path)
                 logging.info("Archivo 'omega' eliminado (kOmega sin definiciones).")
 
-        # Eliminar epsilon
         if os.path.exists(epsilon_file_path):
             try:
                 os.remove(epsilon_file_path)
@@ -233,7 +225,6 @@ def generate_boundary_conditions(temp_dir, parent=None):
             except Exception as e:
                 logging.warning(f"No se pudo eliminar 'epsilon': {e}")
     else:
-        # laminar/otro => eliminar ambos
         if os.path.exists(epsilon_file_path):
             try:
                 os.remove(epsilon_file_path)
@@ -324,11 +315,14 @@ def validate_boundary_conditions(bc_data, turbulence_active, epsilon_active, ome
                     logging.error(f"Campo '{f}' no encontrado en 'Outlet' '{name}'.")
                     return False
         elif btype == "wall":
-            required_wall_fields = ["noFriction", "temperature"]
-            for f in required_wall_fields:
-                if f not in bc:
-                    logging.error(f"Campo '{f}' no encontrado en 'Wall' '{name}'.")
-                    return False
+            # Ahora aceptamos slipType O noFriction
+            if "slipType" not in bc and "noFriction" not in bc:
+                logging.error(f"Ni 'slipType' ni 'noFriction' encontrado en 'Wall' '{name}'.")
+                return False
+            # Temperatura requerida: temperature O wallTemperature
+            if "temperature" not in bc and "wallTemperature" not in bc:
+                logging.error(f"Ni 'temperature' ni 'wallTemperature' encontrado en 'Wall' '{name}'.")
+                return False
         else:
             logging.error(f"Tipo de contorno desconocido '{btype}' para '{name}'.")
             return False

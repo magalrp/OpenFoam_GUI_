@@ -21,10 +21,15 @@ internalField   uniform 300.0;
 boundaryField
 {
 
-    INLET_Secondary_flow
+    INLET_Secondary_Flow
     {
         type            fixedValue;
-        value           uniform 350.0;
+        value           uniform 300.0;
+    }
+
+    walls
+    {
+        type            zeroGradient;
     }
 
     outlet
@@ -32,11 +37,6 @@ boundaryField
         type            inletOutlet;
         inletValue      uniform 300.0;
         value           uniform 300.0;
-    }
-
-    walls
-    {
-        type            zeroGradient;
     }
 
 } // Fin de boundaryField

@@ -17,7 +17,7 @@ FoamFile
     class       dictionary;
     object      thermophysicalProperties;
 }}
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 thermoType
 {{
@@ -40,50 +40,47 @@ inertSpecie     {inertSpecie};
 
 liquids
 {{
-{liquids}
+{liquids_block}
 }}
 
 solids
 {{
-{solids}
+{solids_block}
 }}
 
 // ************************************************************************* //
 """
 
+
 def generate_thermophysicalProperties(settings: dict, target_path: str):
     """
     Escribe el archivo thermophysicalProperties en target_path
-    usando los valores de settings.
-    Claves esperadas en settings:
-      - version
-      - type, mixture, transport, thermo, energy, equationOfState, specie
-      - chemkin_dir
-      - newFormat
-      - inertSpecie
-      - liquids (lista de strings)
-      - solids  (lista de strings)
+    usando los valores de settings, pero nunca falla por clave faltante.
     """
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
 
-    # Formatear listas
-    liquids_block = "\n".join(f"    {liq};" for liq in settings.get("liquids", []))
-    solids_block  = "\n".join(f"    {sol};" for sol in settings.get("solids",  []))
+    # build the liquids/solids blocks (one entry per line, indented)
+    liquids_list = settings.get("liquids", [])
+    solids_list  = settings.get("solids", [])
 
+    liquids_block = "\n".join(f"    {liq};" for liq in liquids_list)
+    solids_block  = "\n".join(f"    {sol};" for sol in solids_list)
+
+    # fill in with defaults if missing
     content = THERMO_TEMPLATE.format(
         version           = settings.get("version", "v2406"),
-        type              = settings["type"],
-        mixture           = settings["mixture"],
-        transport         = settings["transport"],
-        thermo            = settings["thermo"],
-        energy            = settings["energy"],
-        equationOfState   = settings["equationOfState"],
-        specie            = settings["specie"],
+        type              = settings.get("type", "heRhoThermo"),
+        mixture           = settings.get("mixture", "reactingMixture"),
+        transport         = settings.get("transport", "sutherland"),
+        thermo            = settings.get("thermo", "janaf"),
+        energy            = settings.get("energy", "sensibleEnthalpy"),
+        equationOfState   = settings.get("equationOfState", "perfectGas"),
+        specie            = settings.get("specie", "specie"),
         chemkin_dir       = settings.get("chemkin_dir", "<case>/chemkin"),
         newFormat         = "yes" if settings.get("newFormat", True) else "no",
         inertSpecie       = settings.get("inertSpecie", "N2"),
-        liquids           = liquids_block,
-        solids            = solids_block
+        liquids_block     = liquids_block,
+        solids_block      = solids_block
     )
 
     try:

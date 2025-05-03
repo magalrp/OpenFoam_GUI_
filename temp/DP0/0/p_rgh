@@ -21,7 +21,12 @@ internalField   uniform 101325;
 boundaryField
 {
 
-    INLET_Secondary_flow
+    INLET_Secondary_Flow
+    {
+        type            fixedFluxPressure;
+    }
+
+    walls
     {
         type            fixedFluxPressure;
     }
@@ -30,11 +35,6 @@ boundaryField
     {
         type            prghPressure;
         p               uniform 0.0;
-    }
-
-    walls
-    {
-        type            fixedFluxPressure;
     }
 
 }

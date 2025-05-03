@@ -9,34 +9,37 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    object      CH4;
+    class       dictionary;
+    object      thermophysicalProperties;
 }
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 0 0 0 0 0 0];
-
-internalField   uniform 0.0;
-
-boundaryField
+thermoType
 {
-    INLET_Secondary_Flow
-    {
-        type            fixedValue;
-        value           uniform 0.0;
-    }
+    type            heRhoThermo;
+    mixture         reactingMixture;
+    transport       sutherland;
+    thermo          janaf;
+    energy          sensibleEnthalpy;
+    equationOfState perfectGas;
+    specie          specie;
+}
 
-    walls
-    {
-        type            zeroGradient;
-    }
+CHEMKINFile         "<case>/chemkin/chem.inp";
+CHEMKINThermoFile   "<case>/chemkin/therm.dat";
+CHEMKINTransportFile "<case>/chemkin/transportProperties";
 
-    outlet
-    {
-        type            inletOutlet;
-        inletValue      uniform 0.0;
-        value           uniform 0.0;
-    }
+newFormat       yes;
+
+inertSpecie     N2;
+
+liquids
+{
+
+}
+
+solids
+{
 
 }
 

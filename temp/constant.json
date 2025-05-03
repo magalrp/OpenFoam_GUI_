@@ -8,7 +8,7 @@
     "energy_active": true,
     "turbulenceModel": {
         "category": "RAS",
-        "model": "RealizablekEpsilon"
+        "model": "kEpsilon"
     },
     "radiation_active": false,
     "radiation_options": {
@@ -33,7 +33,8 @@
             "H2": "reactant",
             "H2O": "product",
             "CH4": "reactant",
-            "CO2": "product"
+            "CO2": "product",
+            "N2": "inert"
         },
         "combustionModel": "PaSR",
         "combustionParams": {

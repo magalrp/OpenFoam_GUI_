@@ -16,16 +16,16 @@ FoamFile
 
 chemistryType
 {
-    solver            ode;
+    solver            chemkin;
 }
 
 chemistry       on;
 
-initialChemicalTimeStep 1.0e-05;
+initialChemicalTimeStep 1.0e-07;
 
 odeCoeffs
 {
-    solver          seulex;
+    solver          None;
     eps             5.00e-02;
 }
 

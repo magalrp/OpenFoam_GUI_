@@ -21,19 +21,19 @@ internalField   uniform 101325;
 boundaryField
 {
 
-    INLET_Secondary_flow
-    {
-        type            calculated;
-        value           $internalField;
-    }
-
-    outlet
+    INLET_Secondary_Flow
     {
         type            calculated;
         value           $internalField;
     }
 
     walls
+    {
+        type            calculated;
+        value           $internalField;
+    }
+
+    outlet
     {
         type            calculated;
         value           $internalField;

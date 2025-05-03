@@ -1,6 +1,7 @@
 # ui/sections/run_calculation.py
 
 import os
+import json
 import subprocess
 import logging
 
@@ -96,7 +97,6 @@ class RunCalculation(QWidget):
         self.pimple_group = QGroupBox("PIMPLE / PISO Controls")
         pform = QFormLayout(self.pimple_group)
 
-        # nOuterCorrectors: usar 2 por defecto si es None
         outer = self.case_config["controlDict"].get("nOuterCorrectors")
         outer = outer if outer is not None else 2
         self.nOuterCorrectors = QSpinBox()
@@ -104,7 +104,6 @@ class RunCalculation(QWidget):
         self.nOuterCorrectors.setValue(outer)
         pform.addRow("Outer Correctors:", self.nOuterCorrectors)
 
-        # nInnerIterations: usar 1 por defecto si es None
         inner = self.case_config["controlDict"].get("nInnerIterations")
         inner = inner if inner is not None else 1
         self.nInnerIterations = QSpinBox()
@@ -172,10 +171,8 @@ class RunCalculation(QWidget):
         return w
 
     def _connect_control_dict_signals(self):
-        # Solver & Simulation
         self.solver_combo.currentTextChanged.connect(self._on_solver_changed)
         self.sim_combo.currentTextChanged.connect(self._on_sim_changed)
-        # Resto
         mapping = [
             (self.start_time, "startTime"),
             (self.end_time,   "endTime"),
@@ -192,7 +189,9 @@ class RunCalculation(QWidget):
             (self.write_compression,"writeCompression")
         ]
         for widget, key in mapping:
-            sig = getattr(widget, "valueChanged", None) or getattr(widget, "stateChanged", None) or widget.currentTextChanged
+            sig = getattr(widget, "valueChanged", None) \
+                  or getattr(widget, "stateChanged", None) \
+                  or widget.currentTextChanged
             sig.connect(lambda *_ , k=key: self._on_cd_change(k))
 
     def _on_solver_changed(self, v):
@@ -252,6 +251,7 @@ class RunCalculation(QWidget):
         }
         self.decomp_desc.setText(descs.get(m, ""))
 
+
     def _on_initialize(self):
         temp_dir = os.path.join(self.root_dir, "temp")
         try:
@@ -261,19 +261,34 @@ class RunCalculation(QWidget):
 
             # 2) carpeta constant
             generate_constant_files(self.case_config, self.root_dir)
-            logging.info("→ Archivo constant generado.")
+            logging.info("→ Archivos de constant generados.")
 
-            # 3) alphat
-            ap = os.path.join(temp_dir, "DP0", "system", "alphat")
+            # 3) alphat en temp/DP0/0/
+            ap = os.path.join(temp_dir, "DP0", "0", "alphat")
             os.makedirs(os.path.dirname(ap), exist_ok=True)
-            generate_alphat_file(self.case_config, ap)
+
+            # Leer boundary_conditions.json
+            bc_file = os.path.join(temp_dir, "boundary_conditions.json")
+            with open(bc_file, "r", encoding="utf-8") as f:
+                bc_data = json.load(f)
+            boundary_conditions = bc_data.get("boundaryConditions", {})
+
+            # Determinar calculationType (por defecto 'Compresible')
+            calcType = bc_data.get(
+                "calculationType",
+                self.case_config.get("solverSettings", {}).get("calculationType", "Compresible")
+            )
+
+            generate_alphat_file(boundary_conditions, ap, calcType)
             logging.info("→ alphat generado.")
 
             QMessageBox.information(self, "Inicialización", "Todos los archivos iniciales han sido generados.")
             self.data_changed.emit()
+
         except Exception as e:
             logging.error("Error en Inicialización", exc_info=True)
             QMessageBox.critical(self, "Error Inicialización", str(e))
+
 
     def _on_run_parallel(self):
         temp_dp0 = os.path.join(self.root_dir, "temp", "DP0")
@@ -300,10 +315,10 @@ class RunCalculation(QWidget):
             subprocess.run(["decomposePar", "-case", temp_dp0], check=True)
             logging.info("→ decomposePar completado.")
 
-            solver = self.case_config["solverSettings"].get("solver","simpleFoam")
+            solver = self.case_config["solverSettings"].get("solver", "simpleFoam")
             subprocess.run([
-                "mpirun","-np",str(self.nproc_spin.value()),
-                solver,"-parallel","-case",temp_dp0
+                "mpirun", "-np", str(self.nproc_spin.value()),
+                solver, "-parallel", "-case", temp_dp0
             ], check=True)
             logging.info("→ Solver en paralelo finalizado.")
             QMessageBox.information(self, "Ejecución", "Cálculo en paralelo completado.")

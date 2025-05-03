@@ -20,10 +20,16 @@ internalField   uniform 200.0;
 
 boundaryField
 {
-    INLET_Secondary_flow
+    INLET_Secondary_Flow
     {
         type            turbulentMixingLengthFrequencyInlet;
         intensity       0.05;
+        value           uniform 10.0;
+    }
+
+    walls
+    {
+        type            epsilonWallFunction;
         value           uniform 10.0;
     }
 
@@ -32,12 +38,6 @@ boundaryField
         type            inletOutlet;
         inletValue      uniform 10.0;
         value           uniform 10.0;
-    }
-
-    walls
-    {
-        type            epsilonWallFunction;
-        value           uniform 10;
     }
 
 }

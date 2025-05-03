@@ -20,13 +20,7 @@ internalField   uniform 0;
 
 boundaryField
 {
-    INLET_Secondary_flow
-    {
-        type            calculated;
-        value           uniform 0;
-    }
-
-    outlet
+    INLET_Secondary_Flow
     {
         type            calculated;
         value           uniform 0;
@@ -35,9 +29,15 @@ boundaryField
     walls
     {
         type            nutkWallFunction;
-        Cmu             0.09;
-        kappa           0.41;
-        E               9.8;
+        Cmu             None;
+        kappa           None;
+        E               None;
+        value           uniform 0;
+    }
+
+    outlet
+    {
+        type            calculated;
         value           uniform 0;
     }
 
