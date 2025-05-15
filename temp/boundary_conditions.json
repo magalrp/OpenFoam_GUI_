@@ -97,5 +97,5 @@
         "CH4",
         "CO2"
     ],
-    "Turbulence_model": "kEpsilon"
+    "Turbulence_model": "kOmega"
 }

@@ -298,7 +298,9 @@
         },
         "compositionModel": {
             "model": "singleMixtureFractionCoeffs",
-            "speciesType": {},
+            "speciesType": {
+                "CH4": "L\u00edquido"
+            },
             "fractions": {}
         },
         "phaseChangeModel": {

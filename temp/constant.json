@@ -8,7 +8,7 @@
     "energy_active": true,
     "turbulenceModel": {
         "category": "RAS",
-        "model": "kEpsilon"
+        "model": "kOmega"
     },
     "radiation_active": false,
     "radiation_options": {

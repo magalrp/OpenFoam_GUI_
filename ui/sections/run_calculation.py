@@ -2,6 +2,7 @@
 
 import os
 import json
+import shutil
 import subprocess
 import logging
 
@@ -16,13 +17,16 @@ from core.json_manager import JSONManager
 from ui.conf.conf_bc import generate_boundary_conditions
 from ui.conf.bc.conf_alphat import generate_alphat_file
 from ui.conf.conf_constant import generate_constant_files
+from ui.conf.constant.conf_reactingCloudproperties import generate_reactingCloudProperties
+from ui.conf.constant.conf_combustionProperties import generate_combustionProperties
 
 
 class RunCalculation(QWidget):
     """
     Sección unificada:
      - Configura controlDict
-     - Inicializa carpeta 0, constant y alphat
+     - Inicializa carpeta 0, constant, alphat y reactingCloudProperties si procede
+     - Genera combustionProperties + librería CHEMKIN
      - Permite lanzar el solver en paralelo
     """
     data_changed = pyqtSignal()
@@ -42,8 +46,7 @@ class RunCalculation(QWidget):
             if k in ("solver", "simulationType"):
                 self.case_config["solverSettings"][k] = v
             else:
-                # si está definido pero es None, lo dejamos None,
-                # luego en la UI caerá al valor por defecto
+                # Si existe en JSON pero es None, lo guardamos igual
                 self.case_config["controlDict"][k] = v
 
         self._build_ui()
@@ -59,6 +62,7 @@ class RunCalculation(QWidget):
 
         # --- controlDict ---
         form = QFormLayout()
+
         # Solver
         self.solver_combo = QComboBox()
         self.solvers = ["icoFoam", "simpleFoam", "pisoFoam", "pimpleFoam", "reactingParcelFoam"]
@@ -78,18 +82,29 @@ class RunCalculation(QWidget):
         form.addRow("Simulation Type:", self.sim_combo)
 
         # Time control
-        self.start_time = QDoubleSpinBox(); self._config_spin(self.start_time, 0.0, 1e6, 6, "startTime", 0.0)
+        self.start_time = QDoubleSpinBox()
+        self._config_spin(self.start_time, 0.0, 1e6, 6, "startTime", 0.0)
         form.addRow("Start Time:", self.start_time)
-        self.end_time = QDoubleSpinBox();   self._config_spin(self.end_time,   0.0, 1e6, 6, "endTime",   0.0)
-        form.addRow("End Time:",   self.end_time)
-        self.deltaT = QDoubleSpinBox();      self._config_spin(self.deltaT,     1e-6, 1e6, 6, "deltaT",    0.001)
-        form.addRow("Δt:",         self.deltaT)
-        self.adapt_dt = QCheckBox(); self.adapt_dt.setChecked(self.case_config["controlDict"].get("adjustTimeStep", False))
-        form.addRow("Adjust Δt:",  self.adapt_dt)
-        self.maxCo = QDoubleSpinBox();       self._config_spin(self.maxCo,      0.0, 10.0, 6, "maxCo",     1.0)
+
+        self.end_time = QDoubleSpinBox()
+        self._config_spin(self.end_time, 0.0, 1e6, 6, "endTime", 0.0)
+        form.addRow("End Time:", self.end_time)
+
+        self.deltaT = QDoubleSpinBox()
+        self._config_spin(self.deltaT, 1e-6, 1e6, 6, "deltaT", 0.001)
+        form.addRow("Δt:", self.deltaT)
+
+        self.adapt_dt = QCheckBox()
+        self.adapt_dt.setChecked(self.case_config["controlDict"].get("adjustTimeStep", False))
+        form.addRow("Adjust Δt:", self.adapt_dt)
+
+        self.maxCo = QDoubleSpinBox()
+        self._config_spin(self.maxCo, 0.0, 10.0, 6, "maxCo", 1.0)
         form.addRow("Max Courant:", self.maxCo)
-        self.maxDeltaT = QDoubleSpinBox();   self._config_spin(self.maxDeltaT,  1e-6, 1e6, 6, "maxDeltaT", 0.0)
-        form.addRow("Max Δt:",      self.maxDeltaT)
+
+        self.maxDeltaT = QDoubleSpinBox()
+        self._config_spin(self.maxDeltaT, 1e-6, 1e6, 6, "maxDeltaT", 0.0)
+        form.addRow("Max Δt:", self.maxDeltaT)
 
         layout.addLayout(form)
 
@@ -98,14 +113,16 @@ class RunCalculation(QWidget):
         pform = QFormLayout(self.pimple_group)
 
         outer = self.case_config["controlDict"].get("nOuterCorrectors")
-        outer = outer if outer is not None else 2
+        if outer is None:
+            outer = 2
         self.nOuterCorrectors = QSpinBox()
         self.nOuterCorrectors.setRange(1, 100)
         self.nOuterCorrectors.setValue(outer)
         pform.addRow("Outer Correctors:", self.nOuterCorrectors)
 
         inner = self.case_config["controlDict"].get("nInnerIterations")
-        inner = inner if inner is not None else 1
+        if inner is None:
+            inner = 1
         self.nInnerIterations = QSpinBox()
         self.nInnerIterations.setRange(1, 100)
         self.nInnerIterations.setValue(inner)
@@ -115,19 +132,37 @@ class RunCalculation(QWidget):
 
         # --- Output Control ---
         oform = QFormLayout()
-        self.write_control = QComboBox(); self.write_control.addItems(["timeStep","runTime","clockTime"])
-        self.write_control.setCurrentText(self.case_config["controlDict"].get("writeControl","timeStep"))
-        oform.addRow("Write Control:",    self.write_control)
-        self.write_interval = QDoubleSpinBox(); self._config_spin(self.write_interval, 0.0, 1e6, 6, "writeInterval", 1.0)
+        self.write_control = QComboBox()
+        self.write_control.addItems(["timeStep", "runTime", "clockTime"])
+        self.write_control.setCurrentText(
+            self.case_config["controlDict"].get("writeControl", "timeStep")
+        )
+        oform.addRow("Write Control:", self.write_control)
+
+        self.write_interval = QDoubleSpinBox()
+        self._config_spin(self.write_interval, 0.0, 1e6, 6, "writeInterval", 1.0)
         oform.addRow("Write Interval:", self.write_interval)
-        self.write_format = QComboBox(); self.write_format.addItems(["ascii","binary","compressed"])
-        self.write_format.setCurrentText(self.case_config["controlDict"].get("writeFormat","ascii"))
+
+        self.write_format = QComboBox()
+        self.write_format.addItems(["ascii", "binary", "compressed"])
+        self.write_format.setCurrentText(
+            self.case_config["controlDict"].get("writeFormat", "ascii")
+        )
         oform.addRow("Write Format:", self.write_format)
-        self.write_precision = QSpinBox(); self.write_precision.setRange(0,16)
-        self.write_precision.setValue(self.case_config["controlDict"].get("writePrecision",6))
+
+        self.write_precision = QSpinBox()
+        self.write_precision.setRange(0, 16)
+        self.write_precision.setValue(
+            self.case_config["controlDict"].get("writePrecision", 6)
+        )
         oform.addRow("Write Precision:", self.write_precision)
-        self.write_compression = QCheckBox(); self.write_compression.setChecked(self.case_config["controlDict"].get("writeCompression",False))
+
+        self.write_compression = QCheckBox()
+        self.write_compression.setChecked(
+            self.case_config["controlDict"].get("writeCompression", False)
+        )
         oform.addRow("Write Compression:", self.write_compression)
+
         layout.addLayout(oform)
 
         # Conexiones para auto-guardar
@@ -135,7 +170,7 @@ class RunCalculation(QWidget):
         self._update_visibility(self.sim_combo.currentText())
         self._update_pimple(self.solver_combo.currentText())
 
-        # --- Botón único de Inicialización ---
+        # --- Botón de Inicialización ---
         init_btn = QPushButton("Inicializar Caso")
         init_btn.clicked.connect(self._on_initialize)
         layout.addWidget(init_btn)
@@ -143,15 +178,25 @@ class RunCalculation(QWidget):
         # --- Sección Paralelización ---
         par_group = QGroupBox("Cálculo en Paralelo")
         parform = QFormLayout(par_group)
-        self.nproc_spin   = QSpinBox(); self.nproc_spin.setRange(1,1024); self.nproc_spin.setValue(4)
+
+        self.nproc_spin = QSpinBox()
+        self.nproc_spin.setRange(1, 1024)
+        self.nproc_spin.setValue(4)
         parform.addRow("Procesadores:", self.nproc_spin)
-        self.decomp_combo = QComboBox(); self.decomp_combo.addItems(["simple","hierarchical","scotch","metis","manual"])
+
+        self.decomp_combo = QComboBox()
+        self.decomp_combo.addItems(["simple", "hierarchical", "scotch", "metis", "manual"])
         parform.addRow("Método decomp.:", self.decomp_combo)
-        self.decomp_desc  = QLabel(); self.decomp_desc.setWordWrap(True)
+
+        self.decomp_desc = QLabel()
+        self.decomp_desc.setWordWrap(True)
         parform.addRow("Descripción:", self.decomp_desc)
+
         layout.addWidget(par_group)
 
-        self.decomp_combo.currentTextChanged.connect(lambda m: self._update_decomp_desc(m))
+        self.decomp_combo.currentTextChanged.connect(
+            lambda m: self._update_decomp_desc(m)
+        )
         self._update_decomp_desc(self.decomp_combo.currentText())
 
         run_btn = QPushButton("Ejecutar en Paralelo")
@@ -164,15 +209,17 @@ class RunCalculation(QWidget):
 
     # — Métodos auxiliares — #
 
-    def _config_spin(self, w, mn, mx, dc, key, default):
-        w.setRange(mn, mx); w.setDecimals(dc)
+    def _config_spin(self, widget, minimum, maximum, decimals, key, default):
+        widget.setRange(minimum, maximum)
+        widget.setDecimals(decimals)
         val = self.case_config["controlDict"].get(key, default)
-        w.setValue(val if val is not None else default)
-        return w
+        widget.setValue(val if val is not None else default)
+        return widget
 
     def _connect_control_dict_signals(self):
         self.solver_combo.currentTextChanged.connect(self._on_solver_changed)
         self.sim_combo.currentTextChanged.connect(self._on_sim_changed)
+
         mapping = [
             (self.start_time, "startTime"),
             (self.end_time,   "endTime"),
@@ -192,16 +239,16 @@ class RunCalculation(QWidget):
             sig = getattr(widget, "valueChanged", None) \
                   or getattr(widget, "stateChanged", None) \
                   or widget.currentTextChanged
-            sig.connect(lambda *_ , k=key: self._on_cd_change(k))
+            sig.connect(lambda *_, k=key: self._on_cd_change(k))
 
-    def _on_solver_changed(self, v):
-        self.case_config["solverSettings"]["solver"] = v
-        self._update_pimple(v)
+    def _on_solver_changed(self, text):
+        self.case_config["solverSettings"]["solver"] = text
+        self._update_pimple(text)
         self._on_cd_change("solver")
 
-    def _on_sim_changed(self, v):
-        self.case_config["solverSettings"]["simulationType"] = v
-        self._update_visibility(v)
+    def _on_sim_changed(self, text):
+        self.case_config["solverSettings"]["simulationType"] = text
+        self._update_visibility(text)
         self._on_cd_change("simulationType")
 
     def _on_cd_change(self, _):
@@ -227,21 +274,21 @@ class RunCalculation(QWidget):
         self.data_changed.emit()
 
     def _update_visibility(self, sim):
-        stat = (sim == "Estacionario")
+        is_stat = (sim == "Estacionario")
         for w in (self.end_time, self.deltaT, self.adapt_dt, self.maxDeltaT):
-            w.setVisible(not stat)
-        if stat:
-            for k in ("endTime","deltaT","adjustTimeStep","maxDeltaT"):
+            w.setVisible(not is_stat)
+        if is_stat:
+            for k in ("endTime", "deltaT", "adjustTimeStep", "maxDeltaT"):
                 self.case_config["controlDict"][k] = None
 
     def _update_pimple(self, solver):
-        show = solver in ("pimpleFoam","pisoFoam")
+        show = solver in ("pimpleFoam", "pisoFoam")
         self.pimple_group.setVisible(show)
         if not show:
-            for k in ("nOuterCorrectors","nInnerIterations"):
+            for k in ("nOuterCorrectors", "nInnerIterations"):
                 self.case_config["controlDict"][k] = None
 
-    def _update_decomp_desc(self, m):
+    def _update_decomp_desc(self, method):
         descs = {
             "simple":       "División ortogonal uniforme.",
             "hierarchical": "Jerárquica (subdivisiones en cascada).",
@@ -249,51 +296,78 @@ class RunCalculation(QWidget):
             "metis":        "Equilibra con METIS.",
             "manual":       "Manual: edición de decompositionManualDict."
         }
-        self.decomp_desc.setText(descs.get(m, ""))
-
+        self.decomp_desc.setText(descs.get(method, ""))
 
     def _on_initialize(self):
         temp_dir = os.path.join(self.root_dir, "temp")
+        dp0      = os.path.join(temp_dir, "DP0")
+
         try:
-            # 1) cond. de contorno y carpeta 0
+            # 1) condiciones de contorno y carpeta 0
             generate_boundary_conditions(temp_dir, parent=self)
             logging.info("→ Condiciones de contorno generadas.")
 
-            # 2) carpeta constant
+            # 2) archivos del directorio constant
             generate_constant_files(self.case_config, self.root_dir)
             logging.info("→ Archivos de constant generados.")
 
-            # 3) alphat en temp/DP0/0/
-            ap = os.path.join(temp_dir, "DP0", "0", "alphat")
-            os.makedirs(os.path.dirname(ap), exist_ok=True)
+            # 3) reactingCloudProperties (fase discreta)
+            discrete_cfg = JSONManager().load_section("Disperse_fase") or {}
+            generate_reactingCloudProperties(discrete_cfg, self.root_dir)
+            logging.info("→ reactingCloudProperties procesado.")
 
-            # Leer boundary_conditions.json
-            bc_file = os.path.join(temp_dir, "boundary_conditions.json")
-            with open(bc_file, "r", encoding="utf-8") as f:
+            # 4) combustionProperties + CHEMKIN
+            chem_cfg    = self.case_config.get("combustion", {})
+            chem_active = chem_cfg.get("active", False)
+            chemkin_dir = os.path.join(self.root_dir, "chemkin")
+            comb_prop   = os.path.join(dp0, "constant", "combustionProperties")
+
+            if chem_active:
+                # generar combustionProperties en temp/DP0/constant
+                generate_combustionProperties(chem_cfg, self.root_dir)
+                logging.info("→ combustionProperties generado en %s", comb_prop)
+
+                # Asegurar directorio CHEMKIN en <case>/chemkin
+                os.makedirs(chemkin_dir, exist_ok=True)
+                logging.info("→ Directorio CHEMKIN preparado en %s", chemkin_dir)
+            else:
+                # eliminar combustionProperties si existe
+                if os.path.isfile(comb_prop):
+                    os.remove(comb_prop)
+                    logging.info("→ combustionProperties eliminado (química inactiva).")
+                # eliminar carpeta CHEMKIN si existe
+                if os.path.isdir(chemkin_dir):
+                    shutil.rmtree(chemkin_dir)
+                    logging.info("→ carpeta chemkin eliminada (química inactiva).")
+
+            # 5) alphat en DP0/0/
+            ap = os.path.join(dp0, "0", "alphat")
+            os.makedirs(os.path.dirname(ap), exist_ok=True)
+            with open(os.path.join(temp_dir, "boundary_conditions.json"), "r", encoding="utf-8") as f:
                 bc_data = json.load(f)
             boundary_conditions = bc_data.get("boundaryConditions", {})
-
-            # Determinar calculationType (por defecto 'Compresible')
-            calcType = bc_data.get(
+            calcType            = bc_data.get(
                 "calculationType",
                 self.case_config.get("solverSettings", {}).get("calculationType", "Compresible")
             )
-
             generate_alphat_file(boundary_conditions, ap, calcType)
             logging.info("→ alphat generado.")
 
-            QMessageBox.information(self, "Inicialización", "Todos los archivos iniciales han sido generados.")
+            QMessageBox.information(
+                self, "Inicialización",
+                "Todos los archivos iniciales han sido generados."
+            )
             self.data_changed.emit()
 
         except Exception as e:
             logging.error("Error en Inicialización", exc_info=True)
             QMessageBox.critical(self, "Error Inicialización", str(e))
 
-
     def _on_run_parallel(self):
         temp_dp0 = os.path.join(self.root_dir, "temp", "DP0")
         sysd     = os.path.join(temp_dp0, "system")
         os.makedirs(sysd, exist_ok=True)
+
         # escribir decomposeParDict
         dpp = os.path.join(sysd, "decomposeParDict")
         lines = [
@@ -307,6 +381,7 @@ class RunCalculation(QWidget):
             lines += ["hierarchicalCoeffs", "{", "  n (2 2 1);", "  order xyz;", "}"]
         elif m == "manual":
             lines += ["manualCoeffs", "{", "  dataFile \"decompositionManualDict\";", "}"]
+
         with open(dpp, "w") as f:
             f.write("\n".join(lines))
         logging.info("→ decomposeParDict escrito.")

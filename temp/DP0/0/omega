@@ -10,34 +10,22 @@ FoamFile
     version     2.0;
     format      ascii;
     class       volScalarField;
-    object      epsilon;
+    object      omega;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -3 0 0 0 0];
+dimensions      [0 0 -1 0 0 0 0];
 
-internalField   uniform 200.0;
+internalField   uniform 0.0045;
 
 boundaryField
 {
     INLET_Secondary_Flow
     {
         type            turbulentMixingLengthFrequencyInlet;
-        intensity       0.05;
-        value           uniform 10.0;
-    }
-
-    walls
-    {
-        type            epsilonWallFunction;
-        value           uniform 10.0;
-    }
-
-    outlet
-    {
-        type            inletOutlet;
-        inletValue      uniform 10.0;
-        value           uniform 10.0;
+        mixingLength    0.1;
+        k               k;
+        value           uniform 5.0;
     }
 
 }

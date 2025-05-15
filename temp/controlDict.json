@@ -11,5 +11,7 @@
     "writeInterval": 1.0,
     "writeFormat": "ascii",
     "writePrecision": 10,
-    "writeCompression": false
+    "writeCompression": false,
+    "solver": "reactingParcelFoam",
+    "simulationType": "Transitorio"
 }
